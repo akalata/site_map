@@ -10,6 +10,7 @@ site_map.page:
   path: '/sitemap'
   defaults:
     _content: '\Drupal\site_map\Controller\SitemapController::buildPage'
-    _title: 'Site map'
+    # Dynamic title.
+    _title_callback: '\Drupal\site_map\Controller\SitemapController::getTitle'
   requirements:
     _permission: 'access site map'

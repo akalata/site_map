@@ -1,4 +1,4 @@
 services:
-  site_map:
-    class: Drupal\site_map\Controller\SitemapController
-    arguments: ['@module_handler']
+  site_map.helper:
+    class: Drupal\site_map\SitemapHelper
+    arguments: ['@config.factory']

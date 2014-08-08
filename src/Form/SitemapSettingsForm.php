@@ -9,9 +9,10 @@ namespace Drupal\site_map\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Config\ConfigFactory;
-use Drupal\Core\Config\Context\ContextInterface;
 use Drupal\Core\Extension\ModuleHandler;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\system\Entity\Menu;
 
 /**
  * Provides a configuration form for sitemap.
@@ -35,8 +36,8 @@ class SitemapSettingsForm extends ConfigFormBase {
    * @param \Drupal\Core\Extension\ModuleHandler $module_handler
    *   The module handler.
    */
-  public function __construct(ConfigFactory $config_factory, ContextInterface $context, ModuleHandler $module_handler) {
-    parent::__construct($config_factory, $context);
+  public function __construct(ConfigFactory $config_factory, ModuleHandler $module_handler) {
+    parent::__construct($config_factory);
     $this->moduleHandler = $module_handler;
   }
 
@@ -46,7 +47,6 @@ class SitemapSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('config.context.free'),
       $container->get('module_handler')
     );
   }
@@ -61,7 +61,7 @@ class SitemapSettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, array &$form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->configFactory->get('site_map.settings');
 
     $form['site_map_page_title'] = array(
@@ -81,7 +81,7 @@ class SitemapSettingsForm extends ConfigFormBase {
     );
 
     $form['site_map_content'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
       '#title' => $this->t('Site map content'),
     );
     $form['site_map_content']['site_map_show_front'] = array(
@@ -118,7 +118,10 @@ class SitemapSettingsForm extends ConfigFormBase {
     }
 
     $menu_options = array();
-    $menu_options = menu_get_menus();
+    $menus = Menu::loadMultiple();
+    foreach ($menus as $id => $menu) {
+      $menu_options[$id] = $menu->label();
+    }
     $form['site_map_content']['site_map_show_menus'] = array(
       '#type' => 'checkboxes',
       '#title' => $this->t('Menus to include in the site map'),
@@ -145,7 +148,7 @@ class SitemapSettingsForm extends ConfigFormBase {
     $vocab_options = array();
     if ($this->moduleHandler->moduleExists('taxonomy')) {
       foreach (taxonomy_vocabulary_load_multiple() as $vocabulary) {
-        $vocab_options[$vocabulary->vid] = $vocabulary->name;
+        $vocab_options[$vocabulary->id()] = $vocabulary->label();
       }
     }
     $form['site_map_content']['site_map_show_vocabularies'] = array(
@@ -156,7 +159,7 @@ class SitemapSettingsForm extends ConfigFormBase {
       '#multiple' => TRUE,
     );
     $form['site_map_taxonomy_options'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
       '#title' => $this->t('Categories settings'),
     );
     $form['site_map_taxonomy_options']['site_map_show_description'] = array(
@@ -195,7 +198,7 @@ class SitemapSettingsForm extends ConfigFormBase {
     );
 
     $form['site_map_rss_options'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
       '#title' => $this->t('RSS settings'),
     );
     $form['site_map_rss_options']['site_map_rss_front'] = array(
@@ -225,7 +228,7 @@ class SitemapSettingsForm extends ConfigFormBase {
     );
 
     $form['site_map_css_options'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
       '#title' => $this->t('CSS settings'),
     );
     $form['site_map_css_options']['site_map_css'] = array(
@@ -248,14 +251,14 @@ class SitemapSettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, array &$form_state) {
+  public function validateForm(array &$form, FormStateInterface $form_state) {
     parent::validateForm($form, $form_state);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, array &$form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $values = $form_state['values'];
 
     $this->configFactory->get('site_map.settings')

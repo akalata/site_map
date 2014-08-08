@@ -44,26 +44,6 @@ class SitemapController implements ContainerInjectionInterface {
   }
 
   /**
-   * Render the latest maps for the taxonomy tree.
-   *
-   * @return string
-   *   Returns HTML string of site map for taxonomies.
-   */
-  public function getTaxonomys() {
-    $output = '';
-    $config = \Drupal::config('site_map.settings');
-    $vids = array_filter($config->get('site_map_show_vocabularies'));
-    if (!empty($vids)) {
-      $vocabularies = entity_load_multiple('taxonomy_vocabulary', $vids);
-      foreach ($vocabularies as $vocabulary) {
-        $output .= $this->getTaxonomyTree($vocabulary->vid, $vocabulary->name, $vocabulary->description);
-      }
-    }
-
-    return $output;
-  }
-
-  /**
    * Render the taxonomy tree.
    *
    * @param string $vid
@@ -154,51 +134,45 @@ class SitemapController implements ContainerInjectionInterface {
         $output .= "</li>\n</ul>\n";
       }
     }
-    $this->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
     $class[] = 'site-map-box-terms';
     $class[] = 'site-map-box-terms-' . $vid;
     $attributes = array('class' => $class);
 
-    $output = theme('site_map_box', array(
-      'title' => $title,
-      'content' => $output,
-      'attributes' => $attributes,
-      'options' => $options,
-    ));
+    $site_map_box = array(
+      '#theme' => 'site_map_box',
+      '#title' => $title,
+      '#content' => $output,
+      '#attributes' => $attributes,
+      '#options' => $options,
+    );
 
-    return $output;
-  }
-
-  /**
-   * Sets options based on admin input paramaters for redering.
-   *
-   * @param array $options
-   *   The array of options to the site map theme.
-   * @param string $option_string
-   *   The string index given from the admin form to match.
-   * @param int $equal_param
-   *   Result of param test, 0 or 1.
-   * @param string $set_string
-   *   Index of option to set, or the option name.
-   * @param bool $set_value
-   *   The option, on or off, or strings or ints for other options.
-   */
-  public function setOption(&$options, $option_string, $equal_param, $set_string, $set_value) {
-    $config = \Drupal::config('site_map.settings');
-    if ($config->get($option_string) == $equal_param) {
-      $options[$set_string] = $set_value;
-    }
+    return drupal_render($site_map_box);
   }
 
   public function buildPage() {
+    $site_map = array(
+      '#theme' => 'site_map',
+    );
+
     $config = \Drupal::config('site_map.settings');
-    drupal_set_title($config->get('site_map_page_title'));
     if ($config->get('site_map_css') != 1) {
-      drupal_add_css(drupal_get_path('module', 'site_map') . '/site_map.theme.css');
+      $site_map['#attached']['css'][drupal_get_path('module', 'site_map') . '/site_map.theme.css'] = array();
     }
 
-    return theme('site_map');
+    return $site_map;
+//    return drupal_render($site_map);
+  }
+
+  /**
+   * Returns site map page's title.
+   *
+   * @return string
+   */
+  public function getTitle() {
+    $config = \Drupal::config('site_map.settings');
+    return $config->get('site_map_page_title');
   }
 
 }

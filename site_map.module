@@ -57,56 +57,20 @@ function site_map_theme() {
 }
 
 /**
- * Implements hook_menu().
- */
-function site_map_menu() {
-  $items['admin/config/search/sitemap'] = array(
-    'title' => 'Site map',
-    'description' => 'Control what should be displayed on the site map.',
-    'route_name' => 'site_map.settings',
-  );
-  $items['sitemap'] = array(
-    'title' => 'Site map',
-    'description' => 'Display a site map with RSS feeds.',
-    'route_name' => 'site_map.page',
-  );
-
-  return $items;
-}
-
-/**
- * Implements hook_variable_info().
- */
-function site_map_variable_info($options) {
-  $variable['site_map_page_title'] = array(
-    'type' => 'string',
-    'title' => t('Site map title', array(), $options),
-    'description' => t('Page title that will be used on the <a href="@link">site map page</a>.', array('@link' => url('sitemap'))),
-    'default' => 'Site map',
-  );
-  $variable['site_map_message'] = array(
-    'type' => 'text_format',
-    'title' => t('Site map message'),
-    'description' => t('Message that will be used on the <a href="@link">site map page</a>.', array('@link' => url('sitemap'))),
-    'default' => 'The site map provides an overview of all website content.',
-  );
-  $variable['site_map_rss_front'] = array(
-    'type' => 'string',
-    'title' => t('RSS feed for front page', array(), $options),
-    'description' => t('The RSS feed for the front page, default is rss.xml.'),
-    'default' => 'rss.xml',
-  );
-
-  return $variable;
-}
-
-/**
  * Returns HTML for a site map feed icon legend.
  */
 function theme_site_map_rss_legend() {
   $output .= '<p><strong>' . t('Legend:') . '</strong><br />';
-  $output .= '<span class="rss">' . theme('site_map_feed_icon', array('type' => 'node')) . '</span> ' . t('Link to a content RSS feed');
-  $output .= '<br /><span class="rss">' . theme('site_map_feed_icon', array('type' => 'comment')) . '</span> ' . t('Link to a comment RSS feed');
+  $feed_icon_node = array(
+    '#theme' => 'site_map_feed_icon',
+    '#type' => 'node'
+  );
+  $output .= '<span class="rss">' . drupal_render($feed_icon_node) . '</span> ' . t('Link to a content RSS feed');
+  $feed_icon_comment = array(
+    '#theme' => 'site_map_feed_icon',
+    '#type' => 'comment'
+  );
+  $output .= '<br /><span class="rss">' . drupal_render($feed_icon_comment) . '</span> ' . t('Link to a comment RSS feed');
   $output .= '</p>';
 
   return $output;
@@ -168,21 +132,23 @@ function theme_site_map_feed_icon($variables) {
 
   switch ($variables['type']) {
     case 'node':
-      $output = theme('image', array(
-        'path' => drupal_get_path('module', 'site_map') . '/images/feed-small.png',
-        'title' => t('Syndicate content'),
-        'alt' => t('Syndicate content'),
-        )
+      $image = array(
+        '#theme' => 'image',
+        '#path' => drupal_get_path('module', 'site_map') . '/images/feed-small.png',
+        '#title' => t('Syndicate content'),
+        '#alt' => t('Syndicate content'),
       );
+      $output = drupal_render($image);
       break;
 
     case 'comment':
-      $output = theme('image', array(
-        'path' => drupal_get_path('module', 'site_map') . '/images/feed-small-comment.png',
-        'title' => t('Syndicate comments'),
-        'alt' => t('Syndicate comments'),
-        )
+      $image = array(
+        '#theme' => 'image',
+        '#path' => drupal_get_path('module', 'site_map') . '/images/feed-small-comment.png',
+        '#title' => t('Syndicate content'),
+        '#alt' => t('Syndicate content'),
       );
+      $output = drupal_render($image);
       break;
   }
 
@@ -265,19 +231,22 @@ function template_preprocess_site_map(&$variables) {
     $variables['message'] = String::checkPlain($message, $config->get('site_map_message.format'));
   }
 
-  if ((variable_get('site_map_show_rss_links', 1) != 0) && module_exists('commentrss') && variable_get('commentrss_site', COMMENTRSS_SITE_FRONT_PAGE)) {
-    $variables['rss_legend'] = theme('site_map_rss_legend');
+  if (($config->get('site_map_show_rss_links') != 0) && \Drupal::service('module_handler')->moduleExists('commentrss') && \Drupal::config('commentrss.settings')->get('commentrss_site')) {
+    $rss_legend = array(
+      '#theme' => 'site_map_rss_legend'
+    );
+    $variables['rss_legend'] = drupal_render($rss_legend);
   }
 
-  if (variable_get('site_map_show_front', 1)) {
+  if ($config->get('site_map_show_front')) {
     $variables['front_page'] = _site_map_front_page();
   }
 
-  if (variable_get('site_map_show_titles', 1)) {
+  if ($config->get('site_map_show_titles')) {
     $variables['show_titles'] = TRUE;
   }
 
-  if (variable_get('site_map_show_blogs', 1)) {
+  if ($config->get('site_map_show_blogs')) {
     $variables['blogs'] = _site_map_blogs();
   }
 
@@ -287,15 +256,15 @@ function template_preprocess_site_map(&$variables) {
   // Compile the menu trees.
   $variables['menus'] = _site_map_menus();
 
-  if (variable_get('site_map_show_faq', 0)) {
+  if ($config->get('site_map_show_faq')) {
     $variables['faq'] = _site_map_faq();
   }
 
   // Compile the vocabulary trees.
-  $variables['taxonomys'] = \Drupal::service('site_map')->getTaxonomys();
+  $variables['taxonomys'] = \Drupal::service('site_map.helper')->getTaxonomys();
 
   // Invoke all custom modules and integrate themed HTML into the site map.
-  $additional = module_invoke_all('site_map');
+  $additional = \Drupal::service('module_handler')->invokeAll('site_map');
   foreach ($additional as $themed_site_map_code) {
     $variables['additional'] .= $themed_site_map_code;
   }
@@ -308,18 +277,28 @@ function template_preprocess_site_map(&$variables) {
  *   Returns HTML string for front page site map.
  */
 function _site_map_front_page() {
+  $config = \Drupal::config('site_map.settings');
   $output = '';
   $class = array();
   $options = array();
   $title = t('Front page');
-  $output = l(t('Front page of %sn', array('%sn' => variable_get('site_name', 'Drupal'))), '<front>', array('html' => TRUE));
+  $output = l(t('Front page of %sn', array('%sn' => \Drupal::config('system.site')->get('name'))), '<front>', array('html' => TRUE));
 
-  if (variable_get('site_map_show_rss_links', 1) != 0) {
-    $rss_link = theme('site_map_feed_icon', array('url' => variable_get('site_map_rss_front', 'rss.xml')));
-    if (module_exists('commentrss') && variable_get('commentrss_site', COMMENTRSS_SITE_FRONT_PAGE)) {
-      $rss_link .= ' ' . theme('site_map_feed_icon', array('url' => 'crss', 'type' => 'comment'));
+  if ($config->get('site_map_show_rss_links') != 0) {
+    $feed_icon = array(
+      '#theme' => 'site_map_feed_icon',
+      '#url' => $config->get('site_map_rss_front')
+    );
+    $rss_link = drupal_render($feed_icon);
+    if (\Drupal::service('module_handler')->moduleExists('commentrss') && \Drupal::config('commentrss.settings')->get('commentrss_site')) {
+      $feed_icon = array(
+        '#theme' => 'site_map_feed_icon',
+        '#url' => 'crss',
+        '#type' => 'comment'
+      );
+      $rss_link .= ' ' . drupal_render($feed_icon);
     }
-    if (variable_get('site_map_show_rss_links', 1) == 1) {
+    if ($config->get('site_map_show_rss_links') == 1) {
       $output .= ' ' . $rss_link;
     }
     else {
@@ -327,17 +306,19 @@ function _site_map_front_page() {
       $output = $rss_link . ' ' . $output;
     }
   }
-  _site_map_set_option($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+  \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
 
   $class[] = 'site-map-box-front';
   $attributes = array('class' => $class);
 
-  return theme('site_map_box', array(
-    'title' => $title,
-    'content' => $output,
-    'attributes' => $attributes,
-    'options' => $options,
-  ));
+  $site_map_box = array(
+    '#theme' => 'site_map_box',
+    '#title' => $title,
+    '#content' => $output,
+    '#attributes' => $attributes,
+    '#options' => $options,
+  );
+  return drupal_render($site_map_box);
 }
 
 /**
@@ -347,17 +328,22 @@ function _site_map_front_page() {
  *   Returns HTML string of site map for blogs.
  */
 function _site_map_blogs() {
+  $config = \Drupal::config('site_map.settings');
   $output = '';
   $class = array();
   $options = array();
-  if (module_exists('blog')) {
+  if (\Drupal::service('module_handler')->moduleExists('blog')) {
     $title = t('Blogs');
-    $output = '<div class="description">' . t('Community blog and recent blog authors at %sn.', array('%sn' => variable_get('site_name', 'Drupal'))) . '</div>';
+    $output = '<div class="description">' . t('Community blog and recent blog authors at %sn.', array('%sn' => \Drupal::config('system.site')->get('name'))) . '</div>';
 
     $blog_link = l(t('All blogs'), 'blog');
-    if (variable_get('site_map_show_rss_links', 1) != 0) {
-      $rss_link = theme('site_map_feed_icon', array('url' => 'blog/feed'));
-      if (variable_get('site_map_show_rss_links', 1) == 1) {
+    if ($config->get('site_map_show_rss_links') != 0) {
+      $feed_icon = array(
+        '#theme' => 'site_map_feed_icon',
+        '#url' => 'blog/feed'
+      );
+      $rss_link = drupal_render($feed_icon);
+      if ($config->get('site_map_show_rss_links') == 1) {
         $blog_link .= ' ' . $rss_link;
       }
       else {
@@ -365,7 +351,7 @@ function _site_map_blogs() {
         $blog_link = $rss_link . ' ' . $blog_link;
       }
     }
-    _site_map_set_option($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
 
     $blogs = array();
     $blogs[] = $blog_link;
@@ -383,9 +369,13 @@ function _site_map_blogs() {
         '@name' => $blog->name,
         '@num_items' => $blog->numitems,
       ));
-      if (variable_get('site_map_show_rss_links', 1) != 0) {
-        $rss_link = theme('site_map_feed_icon', array('url' => "blog/$blog->uid/feed"));
-        if (variable_get('site_map_show_rss_links', 1) == 1) {
+      if ($config->get('site_map_show_rss_links') != 0) {
+        $feed_icon = array(
+          '#theme' => 'site_map_feed_icon',
+          '#url' => "blog/$blog->uid/feed"
+        );
+        $rss_link = drupal_render($feed_icon);
+        if ($config->get('site_map_show_rss_links') == 1) {
           $blog_item .= ' ' . $rss_link;
         }
         else {
@@ -398,13 +388,20 @@ function _site_map_blogs() {
     $class[] = 'site-map-box-blog';
     $attributes = array('class' => $class);
 
-    $output .= theme('item_list', array('items' => $blogs));
-    $output = theme('site_map_box', array(
-      'title' => $title,
-      'content' => $output,
-      'attributes' => $attributes,
-      'options' => $options,
-    ));
+    $blog_list = array(
+      '#theme' => 'item_list',
+      '#items' => $blogs
+    );
+    $output .= drupal_render($blog_list);
+
+    $site_map_box = array(
+      '#theme' => 'site_map_box',
+      '#title' => $title,
+      '#content' => $output,
+      '#attributes' => $attributes,
+      '#options' => $options,
+    );
+    $output = drupal_render($site_map_box);
   }
 
   return $output;
@@ -417,15 +414,20 @@ function _site_map_blogs() {
  *   Returns HTML string of site map for audio.
  */
 function _site_map_audio() {
+  $config = \Drupal::config('site_map.settings');
   $output = '';
   $class = array();
   $options = array();
-  if (module_exists('audio')) {
+  if (\Drupal::service('module_handler')->moduleExists('audio')) {
     $title = t('Audio');
     $output = l(t('Audio content'), 'audio');
-    if (variable_get('site_map_show_rss_links', 1) != 0) {
-      $rss_link = theme('site_map_feed_icon', array('url' => 'audio/feed'));
-      if (variable_get('site_map_show_rss_links', 1) == 1) {
+    if ($config->get('site_map_show_rss_links') != 0) {
+      $feed_icon = array(
+        '#theme' => 'site_map_feed_icon',
+        '#url' => 'audio/feed'
+      );
+      $rss_link = drupal_render($feed_icon);
+      if ($config->get('site_map_show_rss_links') == 1) {
         $output .= ' ' . $rss_link;
       }
       else {
@@ -433,17 +435,19 @@ function _site_map_audio() {
         $output = $rss_link . ' ' . $output;
       }
     }
-    _site_map_set_option($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
 
     $class[] = 'site-map-box-audio';
     $attributes = array('class' => $class);
 
-    $output = theme('site_map_box', array(
-      'title' => $title,
-      'content' => $output,
-      'attributes' => $attributes,
-      'options' => $options,
-    ));
+    $site_map_box = array(
+      '#theme' => 'site_map_box',
+      '#title' => $title,
+      '#content' => $output,
+      '#attributes' => $attributes,
+      '#options' => $options,
+    );
+    $output = drupal_render($site_map_box);
   }
 
   return $output;
@@ -456,15 +460,20 @@ function _site_map_audio() {
  *   Returns HTML string of site map for video.
  */
 function _site_map_video() {
+  $config = \Drupal::config('site_map.settings');
   $output = '';
   $class = array();
   $options = array();
-  if (module_exists('video')) {
+  if (\Drupal::service('module_handler')->moduleExists('video')) {
     $title = t('Video');
     $output = l(t('Video content'), 'video');
-    if (variable_get('site_map_show_rss_links', 1) != 0) {
-      $rss_link = theme('site_map_feed_icon', array('url' => 'video/feed'));
-      if (variable_get('site_map_show_rss_links', 1) == 1) {
+    if ($config->get('site_map_show_rss_links') != 0) {
+      $feed_icon = array(
+        '#theme' => 'site_map_feed_icon',
+        '#url' => 'video/feed'
+      );
+      $rss_link = drupal_render($feed_icon);
+      if ($config->get('site_map_show_rss_links') == 1) {
         $output .= ' ' . $rss_link;
       }
       else {
@@ -472,17 +481,19 @@ function _site_map_video() {
         $output = $rss_link . '  ' . $output;
       }
     }
-    _site_map_set_option($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
 
     $class[] = 'site-map-box-video';
     $attributes = array('class' => $class);
 
-    $output = theme('site_map_box', array(
-      'title' => $title,
-      'content' => $output,
-      'attributes' => $attributes,
-      'options' => $options,
-    ));
+    $site_map_box = array(
+      '#theme' => 'site_map_box',
+      '#title' => $title,
+      '#content' => $output,
+      '#attributes' => $attributes,
+      '#options' => $options,
+    );
+    $output = drupal_render($site_map_box);
   }
 
   return $output;
@@ -495,21 +506,22 @@ function _site_map_video() {
  *   Returns HTML string of site map for video.
  */
 function _site_map_books() {
+  $config = \Drupal::config('site_map.settings');
   $output = '';
   $options = array();
   $book_titles = array();
-  $mlid = array_filter(variable_get('site_map_show_books', array()));
+  $mlid = array_filter($config->get('site_map_show_books'));
 
-  if (module_exists('book') && !empty($mlid)) {
-    $books_expanded = variable_get('site_map_books_expanded', 1);
+  if (\Drupal::service('module_handler')->moduleExists('book') && !empty($mlid)) {
+    $books_expanded = $config->get('site_map_books_expanded');
     $title = t('Books');
-    $description = '<div class="description">' . t('Books at %sn.', array('%sn' => variable_get('site_name', 'Drupal'))) . '</div>';
+    $description = '<div class="description">' . t('Books at %sn.', array('%sn' => \Drupal::config('system.site')->get('name'))) . '</div>';
 
     foreach (book_get_books() as $book_id => $book) {
       if (in_array($book['mlid'], $mlid)) {
         // Use menu_tree_all_data to retrieve the expanded tree.
         $tree = menu_tree_all_data($book['menu_name']);
-        if (module_exists('i18n_menu')) {
+        if (\Drupal::service('module_handler')->moduleExists('i18n_menu')) {
           $tree = i18n_menu_localize_tree($tree, $GLOBALS['language']->language);
         }
         if ($books_expanded) {
@@ -518,25 +530,35 @@ function _site_map_books() {
         }
         else {
           $data = array_shift($tree);
-          $book_titles[] = theme('book_title_link', array('link' => $data['link']));
+          $book_title = array(
+            '#theme' => 'book_title_link',
+            '#link' => $data['link']
+          );
+          $book_titles[] = drupal_render($book_title);
         }
       }
     }
-    _site_map_set_option($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
 
     if (!$books_expanded && !empty($book_titles)) {
-      $output .= theme('item_list', array('items' => $book_titles));
+      $book_titles = array(
+        '#theme' => 'item_list',
+        '#items' => $book_titles
+      );
+      $output .= drupal_render($book_titles);
     }
 
     if (!empty($output)) {
       $attributes = array('class' => array('site-map-box-book'));
 
-      $output = theme('site_map_box', array(
-        'title' => $title,
-        'content' => $description . $output,
-        'attributes' => $attributes,
-        'options' => $options,
-      ));
+      $site_map_box = array(
+        '#theme' => 'site_map_box',
+        '#title' => $title,
+        '#content' => $description . $output,
+        '#attributes' => $attributes,
+        '#options' => $options,
+      );
+      $output = drupal_render($site_map_box);
     }
   }
 
@@ -550,38 +572,42 @@ function _site_map_books() {
  *   Returns HTML string of site map for menus.
  */
 function _site_map_menus() {
+  $config = \Drupal::config('site_map.settings');
   $output = '';
   $class = array();
   $options = array();
-  $mids = array_filter(variable_get('site_map_show_menus', array()));
+  $mids = array_filter($config->get('site_map_show_menus'));
 
   if (!empty($mids)) {
     foreach ($mids as $mid) {
       $menu = menu_load($mid);
       // Use menu_tree_all_data to retrieve the expanded tree.
       $tree = menu_tree_all_data($mid);
-      if (module_exists('i18n_menu')) {
+      if (\Drupal::service('module_handler')->moduleExists('i18n_menu')) {
         $tree = i18n_menu_localize_tree($tree, $GLOBALS['language']->language);
       }
       $menu_display = _site_map_menu_tree_output($tree);
       $menu_html = drupal_render($menu_display);
       if (!empty($menu_html)) {
         $title = t($menu['title']);
-        if (module_exists('i18n_string')) {
+        if (\Drupal::service('module_handler')->moduleExists('i18n_string')) {
           $m_array = array('menu', 'menu', $menu['menu_name'], 'title');
           $title = i18n_string_plain($m_array, $title);
         }
-        _site_map_set_option($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+        \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
 
         $class[] = 'site-map-box-menu';
         $class[] = 'site-map-box-menu-' . $mid;
         $attributes = array('class' => $class);
-        $output .= theme('site_map_box', array(
-          'title' => $title,
-          'content' => $menu_html,
-          'attributes' => $attributes,
-          'options' => $options,
-        ));
+
+        $site_map_box = array(
+          '#theme' => 'site_map_box',
+          '#title' => $title,
+          '#content' => $menu_html,
+          '#attributes' => $attributes,
+          '#options' => $options,
+        );
+        $output .= drupal_render($site_map_box);
       }
     }
   }
@@ -598,18 +624,20 @@ function _site_map_menus() {
 function _site_map_faq() {
   $output = '';
   $options = array();
-  if (module_exists('faq')) {
-    $title = variable_get('faq_title', t('Frequently Asked Questions'));
+  if (\Drupal::service('module_handler')->moduleExists('faq')) {
+    $title = \Drupal::config('faq.settings')->get('faq_title');
     $attributes = array('class' => array('site-map-box-faq'));
     $output = faq_get_faq_list();
-    _site_map_set_option($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
 
-    $output = theme('site_map_box', array(
-      'title' => $title,
-      'content' => $output,
-      'attributes' => $attributes,
-      'options' => $options,
-    ));
+    $site_map_box = array(
+      '#theme' => 'site_map_box',
+      '#title' => $title,
+      '#content' => $output,
+      '#attributes' => $attributes,
+      '#options' => $options,
+    );
+    $output = drupal_render($site_map_box);
   }
 
   return $output;
@@ -633,6 +661,7 @@ function _site_map_faq() {
  *   A structured array to be rendered by drupal_render().
  */
 function _site_map_menu_tree_output($tree) {
+  $config = \Drupal::config('site_map.settings');
   $build = array();
   $items = array();
 
@@ -640,7 +669,7 @@ function _site_map_menu_tree_output($tree) {
   // get an accurate count for the first/last classes.
   // Thanks for fix by zhuber at https://drupal.org/node/1331104#comment-5200266
   foreach ($tree as $data) {
-    if ($data['link']['access'] && (!$data['link']['hidden'] || variable_get('site_map_show_menus_hidden', 0))) {
+    if ($data['link']['access'] && (!$data['link']['hidden'] || $config->get('site_map_show_menus_hidden'))) {
       $items[] = $data;
     }
   }
