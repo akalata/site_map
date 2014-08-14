@@ -9,7 +9,9 @@
  */
 
 use Drupal\Component\Utility\String;
-use \Drupal\Core\Template\Attribute;
+use Drupal\Core\Template\Attribute;
+use Drupal\system\Entity\Menu;
+use Drupal\Core\Menu\MenuTreeParameters;
 
 /**
  * Implements hook_permission().
@@ -214,8 +216,11 @@ function theme_site_map_menu_link(array $variables) {
   if ($element['#below']) {
     $sub_menu = drupal_render($element['#below']);
   }
-  $output = l($element['#title'], $element['#href'], $element['#localized_options']);
-  return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $sub_menu . "</li>\n";
+  /** @var \Drupal\Core\Url $url */
+  $url = $element['#url'];
+  $url->setOption('set_active_class', TRUE);
+  $output = \Drupal::linkGenerator()->generateFromUrl($element['#title'], $url);
+  return '<li' . new Attribute($element['#attributes']) . '>' . $output . $sub_menu . "</li>\n";
 }
 
 /**
@@ -519,13 +524,18 @@ function _site_map_books() {
 
     foreach (book_get_books() as $book_id => $book) {
       if (in_array($book['mlid'], $mlid)) {
-        // Use menu_tree_all_data to retrieve the expanded tree.
-        $tree = menu_tree_all_data($book['menu_name']);
+        // Retrieve the expanded tree.
+        $tree = \Drupal::service('menu.link_tree')->load($mlid, new MenuTreeParameters());
+        $manipulators = array(
+          array('callable' => 'menu.default_tree_manipulators:checkAccess'),
+          array('callable' => 'menu.default_tree_manipulators:generateIndexAndSort'),
+        );
+        $tree = \Drupal::service('menu.link_tree')->transform($tree, $manipulators);
         if (\Drupal::service('module_handler')->moduleExists('i18n_menu')) {
           $tree = i18n_menu_localize_tree($tree, $GLOBALS['language']->language);
         }
         if ($books_expanded) {
-          $tree_output = _site_map_menu_tree_output($tree);
+          $tree_output = \Drupal::service('menu.link_tree')->buildForSiteMap($tree);
           $output .= drupal_render($tree_output);
         }
         else {
@@ -580,16 +590,21 @@ function _site_map_menus() {
 
   if (!empty($mids)) {
     foreach ($mids as $mid) {
-      $menu = menu_load($mid);
-      // Use menu_tree_all_data to retrieve the expanded tree.
-      $tree = menu_tree_all_data($mid);
+      $menu = Menu::load($mid);
+      // Retrieve the expanded tree.
+      $tree = \Drupal::service('menu.link_tree')->load($mid, new MenuTreeParameters());
+      $manipulators = array(
+        array('callable' => 'menu.default_tree_manipulators:checkAccess'),
+        array('callable' => 'menu.default_tree_manipulators:generateIndexAndSort'),
+      );
+      $tree = \Drupal::service('menu.link_tree')->transform($tree, $manipulators);
       if (\Drupal::service('module_handler')->moduleExists('i18n_menu')) {
         $tree = i18n_menu_localize_tree($tree, $GLOBALS['language']->language);
       }
-      $menu_display = _site_map_menu_tree_output($tree);
+      $menu_display = \Drupal::service('menu.link_tree')->buildForSiteMap($tree);
       $menu_html = drupal_render($menu_display);
       if (!empty($menu_html)) {
-        $title = t($menu['title']);
+        $title = $menu->label();
         if (\Drupal::service('module_handler')->moduleExists('i18n_string')) {
           $m_array = array('menu', 'menu', $menu['menu_name'], 'title');
           $title = i18n_string_plain($m_array, $title);
@@ -641,92 +656,4 @@ function _site_map_faq() {
   }
 
   return $output;
-}
-
-/**
- * Returns a rendered menu tree.
- *
- * This is a clone of the core menu_tree_output() function with the exception
- * of theme('site_map_menu_tree') for theming override reasons.
- *
- * The menu item's LI element is given one of the following classes:
- * - expanded: The menu item is showing its submenu.
- * - collapsed: The menu item has a submenu which is not shown.
- * - leaf: The menu item has no submenu.
- *
- * @param array $tree
- *   A data structure representing the tree as returned from menu_tree_data.
- *
- * @return array
- *   A structured array to be rendered by drupal_render().
- */
-function _site_map_menu_tree_output($tree) {
-  $config = \Drupal::config('site_map.settings');
-  $build = array();
-  $items = array();
-
-  // Pull out just the menu links we are going to render so that we
-  // get an accurate count for the first/last classes.
-  // Thanks for fix by zhuber at https://drupal.org/node/1331104#comment-5200266
-  foreach ($tree as $data) {
-    if ($data['link']['access'] && (!$data['link']['hidden'] || $config->get('site_map_show_menus_hidden'))) {
-      $items[] = $data;
-    }
-  }
-
-  $router_item = menu_get_item();
-  $num_items = count($items);
-  foreach ($items as $i => $data) {
-    $class = array();
-    if ($i == 0) {
-      $class[] = 'first';
-    }
-    if ($i == $num_items - 1) {
-      $class[] = 'last';
-    }
-    // Set a class for the <li>-tag. Since $data['below'] may contain local
-    // tasks, only set 'expanded' class if the link also has children within
-    // the current menu.
-    if ($data['link']['has_children'] && $data['below']) {
-      $class[] = 'expanded';
-    }
-    elseif ($data['link']['has_children']) {
-      $class[] = 'collapsed';
-    }
-    else {
-      $class[] = 'leaf';
-    }
-    // Set a class if the link is in the active trail.
-    if ($data['link']['in_active_trail']) {
-      $class[] = 'active-trail';
-      $data['link']['localized_options']['attributes']['class'][] = 'active-trail';
-    }
-    // Normally, l() compares the href of every link with $_GET['q'] and sets
-    // the active class accordingly. But local tasks do not appear in menu
-    // trees, so if the current path is a local task, and this link is its
-    // tab root, then we have to set the class manually.
-    if ($data['link']['href'] == $router_item['tab_root_href'] && $data['link']['href'] != $_GET['q']) {
-      $data['link']['localized_options']['attributes']['class'][] = 'active';
-    }
-
-    // Allow menu-specific theme overrides.
-    $element['#theme'] = 'site_map_menu_link__' . strtr($data['link']['menu_name'], '-', '_');
-    $element['#attributes']['class'] = $class;
-    $element['#title'] = $data['link']['title'];
-    $element['#href'] = $data['link']['href'];
-    $element['#localized_options'] = !empty($data['link']['localized_options']) ? $data['link']['localized_options'] : array();
-    $element['#below'] = $data['below'] ? _site_map_menu_tree_output($data['below']) : $data['below'];
-    $element['#original_link'] = $data['link'];
-    // Index using the link's unique mlid.
-    $build[$data['link']['mlid']] = $element;
-  }
-  if ($build) {
-    // Make sure drupal_render() does not re-order the links.
-    $build['#sorted'] = TRUE;
-    // Add the theme wrapper for outer markup.
-    // Allow menu-specific theme overrides.
-    $build['#theme_wrappers'][] = 'site_map_menu_tree__' . strtr($data['link']['menu_name'], '-', '_');
-  }
-
-  return $build;
 }

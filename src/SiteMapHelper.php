@@ -12,7 +12,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 /**
  * Defines a helper class for stuff related to views data.
  */
-class SitemapHelper {
+class SiteMapHelper {
 
   /**
    * The configuration factory.
