@@ -38,6 +38,7 @@ function site_map_theme() {
         'title' => NULL,
         'content' => NULL,
         'attributes' => array(),
+        'options' => NULL,
       ),
     ),
     'site_map_feed_icon' => array(
@@ -136,7 +137,7 @@ function theme_site_map_feed_icon($variables) {
     case 'node':
       $image = array(
         '#theme' => 'image',
-        '#path' => drupal_get_path('module', 'site_map') . '/images/feed-small.png',
+        '#uri' => drupal_get_path('module', 'site_map') . '/images/feed-small.png',
         '#title' => t('Syndicate content'),
         '#alt' => t('Syndicate content'),
       );
@@ -146,7 +147,7 @@ function theme_site_map_feed_icon($variables) {
     case 'comment':
       $image = array(
         '#theme' => 'image',
-        '#path' => drupal_get_path('module', 'site_map') . '/images/feed-small-comment.png',
+        '#uri' => drupal_get_path('module', 'site_map') . '/images/feed-small-comment.png',
         '#title' => t('Syndicate content'),
         '#alt' => t('Syndicate content'),
       );
@@ -311,7 +312,7 @@ function _site_map_front_page() {
       $output = $rss_link . ' ' . $output;
     }
   }
-  \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+  \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
   $class[] = 'site-map-box-front';
   $attributes = array('class' => $class);
@@ -356,7 +357,7 @@ function _site_map_blogs() {
         $blog_link = $rss_link . ' ' . $blog_link;
       }
     }
-    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
     $blogs = array();
     $blogs[] = $blog_link;
@@ -440,7 +441,7 @@ function _site_map_audio() {
         $output = $rss_link . ' ' . $output;
       }
     }
-    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
     $class[] = 'site-map-box-audio';
     $attributes = array('class' => $class);
@@ -486,7 +487,7 @@ function _site_map_video() {
         $output = $rss_link . '  ' . $output;
       }
     }
-    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
     $class[] = 'site-map-box-video';
     $attributes = array('class' => $class);
@@ -548,7 +549,7 @@ function _site_map_books() {
         }
       }
     }
-    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
     if (!$books_expanded && !empty($book_titles)) {
       $book_titles = array(
@@ -609,7 +610,7 @@ function _site_map_menus() {
           $m_array = array('menu', 'menu', $menu['menu_name'], 'title');
           $title = i18n_string_plain($m_array, $title);
         }
-        \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+        \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
         $class[] = 'site-map-box-menu';
         $class[] = 'site-map-box-menu-' . $mid;
@@ -643,7 +644,7 @@ function _site_map_faq() {
     $title = \Drupal::config('faq.settings')->get('faq_title');
     $attributes = array('class' => array('site-map-box-faq'));
     $output = faq_get_faq_list();
-    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 1, 'show_titles', TRUE);
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
     $site_map_box = array(
       '#theme' => 'site_map_box',
