@@ -8,6 +8,7 @@
 namespace Drupal\site_map;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Component\Utility\String;
 
 /**
  * Defines a helper class for stuff related to views data.
@@ -70,6 +71,118 @@ class SiteMapHelper {
     }
 
     return $output;
+  }
+
+  /**
+   * Render the taxonomy tree.
+   *
+   * @param string $vid
+   *   The results of taxonomy_get_tree() with optional 'count' fields.
+   * @param string $name
+   *   An optional name for the tree. (Default: NULL)
+   * @param string $description
+   *   $description An optional description of the tree. (Default: NULL)
+   *
+   * @return string
+   *   A string representing a rendered tree.
+   */
+  public function getTaxonomyTree($vid, $name = NULL, $description = NULL) {
+    $output = '';
+    $options = array();
+    $class = array();
+
+    $title = $name ? String::checkPlain(t($name)) : '';
+
+    $config = \Drupal::config('site_map.settings');
+    $threshold = $config->get('site_map_term_threshold');
+
+    $forum_link = FALSE;
+
+    $last_depth = -1;
+
+    $output .= !empty($description) && $config->get('site_map_show_description') ? '<div class="description">' . filter_xss_admin($description) . "</div>\n" : '';
+
+    // taxonomy_get_tree() honors access controls.
+    $tree = taxonomy_get_tree($vid);
+    foreach ($tree as $term) {
+      $term->count = count(taxonomy_select_nodes($term->tid));
+      if ($term->count <= $threshold) {
+        continue;
+      }
+
+      // Adjust the depth of the <ul> based on the change
+      // in $term->depth since the $last_depth.
+      if ($term->depth > $last_depth) {
+        for ($i = 0; $i < ($term->depth - $last_depth); $i++) {
+          $output .= "\n<ul>";
+        }
+      }
+      elseif ($term->depth == $last_depth) {
+        $output .= '</li>';
+      }
+      elseif ($term->depth < $last_depth) {
+        for ($i = 0; $i < ($last_depth - $term->depth); $i++) {
+          $output .= "</li>\n</ul>\n</li>";
+        }
+      }
+      // Display the $term.
+      $output .= "\n<li>";
+      $term_item = '';
+      if ($forum_link) {
+        $term_item .= l($term->name, 'forum/' . $term->tid, array('attributes' => array('title' => $term->description__value)));
+      }
+      elseif ($term->count) {
+        $term_item .= l($term->name, 'taxonomy/term/' . $term->tid, array('attributes' => array('title' => $term->description__value)));
+      }
+      else {
+        $term_item .= String::checkPlain($term->name);
+      }
+      if ($config->get('site_map_show_count')) {
+        $term_item .= " ($term->count)";
+      }
+
+      if ($config->get('site_map_show_rss_links') != 0) {
+        $feed_icon = array(
+          '#theme' => 'site_map_feed_icon',
+          '#url' => 'taxonomy/term/' . $term->tid . '/feed'
+        );
+        $rss_link = drupal_render($feed_icon);
+        if ($config->get('site_map_show_rss_links') == 1) {
+          $term_item .= ' ' . $rss_link;
+        }
+        else {
+          $class[] = 'site-map-rss-left';
+          $term_item = $rss_link . ' ' . $term_item;
+        }
+      }
+
+      $output .= $term_item;
+
+      // Reset $last_depth in preparation for the next $term.
+      $last_depth = $term->depth;
+    }
+
+    // Bring the depth back to where it began, -1.
+    if ($last_depth > -1) {
+      for ($i = 0; $i < ($last_depth + 1); $i++) {
+        $output .= "</li>\n</ul>\n";
+      }
+    }
+    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
+
+    $class[] = 'site-map-box-terms';
+    $class[] = 'site-map-box-terms-' . $vid;
+    $attributes = array('class' => $class);
+
+    $site_map_box = array(
+      '#theme' => 'site_map_box',
+      '#title' => $title,
+      '#content' => $output,
+      '#attributes' => $attributes,
+      '#options' => $options,
+    );
+
+    return drupal_render($site_map_box);
   }
 
 }
