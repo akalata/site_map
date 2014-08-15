@@ -9,6 +9,7 @@ namespace Drupal\site_map;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Component\Utility\String;
+use Drupal\Component\Utility\Xss;
 
 /**
  * Defines a helper class for stuff related to views data.
@@ -100,7 +101,7 @@ class SiteMapHelper {
 
     $last_depth = -1;
 
-    $output .= !empty($description) && $config->get('site_map_show_description') ? '<div class="description">' . filter_xss_admin($description) . "</div>\n" : '';
+    $output .= !empty($description) && $config->get('site_map_show_description') ? '<div class="description">' . Xss::filterAdmin($description) . "</div>\n" : '';
 
     // taxonomy_get_tree() honors access controls.
     $tree = taxonomy_get_tree($vid);
