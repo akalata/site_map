@@ -13,6 +13,7 @@ use Drupal\Core\Extension\ModuleHandler;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\system\Entity\Menu;
+use Drupal\book\BookManagerInterface;
 
 /**
  * Provides a configuration form for sitemap.
@@ -27,6 +28,13 @@ class SitemapSettingsForm extends ConfigFormBase {
   protected $moduleHandler;
 
   /**
+   * The book manager.
+   *
+   * @var \Drupal\book\BookManagerInterface
+   */
+  protected $bookManager;
+
+  /**
    * Constructs a SitemapSettingsForm object.
    *
    * @param \Drupal\Core\Config\ConfigFactory $config_factory
@@ -36,9 +44,10 @@ class SitemapSettingsForm extends ConfigFormBase {
    * @param \Drupal\Core\Extension\ModuleHandler $module_handler
    *   The module handler.
    */
-  public function __construct(ConfigFactory $config_factory, ModuleHandler $module_handler) {
+  public function __construct(ConfigFactory $config_factory, ModuleHandler $module_handler, BookManagerInterface $book_manager) {
     parent::__construct($config_factory);
     $this->moduleHandler = $module_handler;
+    $this->bookManager = $book_manager;
   }
 
   /**
@@ -47,7 +56,8 @@ class SitemapSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('book.manager')
     );
   }
 
@@ -99,8 +109,8 @@ class SitemapSettingsForm extends ConfigFormBase {
 
     if ($this->moduleHandler->moduleExists('book')) {
       $book_options = array();
-      foreach (book_get_books() as $book) {
-        $book_options[$book['mlid']] = $book['title'];
+      foreach ($this->bookManager->getAllBooks() as $book_id => $book) {
+        $book_options[$book['bid']] = $book['title'];
       }
       $form['site_map_content']['site_map_show_books'] = array(
         '#type' => 'checkboxes',

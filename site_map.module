@@ -516,36 +516,26 @@ function _site_map_books() {
   $output = '';
   $options = array();
   $book_titles = array();
-  $mlid = array_filter($config->get('site_map_show_books'));
+  $bids = array_filter($config->get('site_map_show_books'));
 
-  if (\Drupal::service('module_handler')->moduleExists('book') && !empty($mlid)) {
+  if (\Drupal::service('module_handler')->moduleExists('book') && !empty($bids)) {
     $books_expanded = $config->get('site_map_books_expanded');
     $title = t('Books');
     $description = '<div class="description">' . t('Books at %sn.', array('%sn' => \Drupal::config('system.site')->get('name'))) . '</div>';
 
-    foreach (book_get_books() as $book_id => $book) {
-      if (in_array($book['mlid'], $mlid)) {
-        // Retrieve the expanded tree.
-        $tree = \Drupal::service('menu.link_tree')->load($mlid, new MenuTreeParameters());
-        $manipulators = array(
-          array('callable' => 'menu.default_tree_manipulators:checkAccess'),
-          array('callable' => 'menu.default_tree_manipulators:generateIndexAndSort'),
-        );
-        $tree = \Drupal::service('menu.link_tree')->transform($tree, $manipulators);
-        if (\Drupal::service('module_handler')->moduleExists('i18n_menu')) {
-          $tree = i18n_menu_localize_tree($tree, $GLOBALS['language']->language);
-        }
+    foreach (\Drupal::service('book.manager')->getAllBooks() as $book_id => $book) {
+      if (in_array($book['bid'], $bids)) {
         if ($books_expanded) {
-          $tree_output = \Drupal::service('menu.link_tree')->buildForSiteMap($tree);
+          // Retrieve the expanded tree.
+          $tree = \Drupal::service('book.manager')->bookTreeAllData($book['bid']);
+          if (\Drupal::service('module_handler')->moduleExists('i18n_menu')) {
+            $tree = i18n_menu_localize_tree($tree, $GLOBALS['language']->language);
+          }
+          $tree_output = \Drupal::service('book.manager')->bookTreeOutput($tree);
           $output .= drupal_render($tree_output);
         }
         else {
-          $data = array_shift($tree);
-          $book_title = array(
-            '#theme' => 'book_title_link',
-            '#link' => $data['link']
-          );
-          $book_titles[] = drupal_render($book_title);
+          $book_titles[] = l($book['title'], \Drupal::url('node.view', array('node' => $book['bid'])));
         }
       }
     }

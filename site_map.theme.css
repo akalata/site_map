@@ -67,3 +67,12 @@ ul.site-map-menu li {
 ul.site-map-menu a.active {
   color: #000;
 }
+
+/**
+ * Styles for book menu.
+ **/
+
+.site-map-box ul.menu .leaf {
+  list-style-image: url("../../misc/menu-leaf.png");
+  list-style-type: disc;
+}
