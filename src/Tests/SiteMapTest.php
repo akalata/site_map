@@ -21,7 +21,7 @@ class SiteMapTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('site_map');
+  public static $modules = array('site_map', 'node');
 
   protected function setUp() {
     parent::setUp();
@@ -30,9 +30,9 @@ class SiteMapTest extends WebTestBase {
     $this->user = $this->drupalCreateUser(array(
       'administer site configuration',
       'access site map',
-      'administer menu',
+      //'administer menu',
       'administer nodes',
-      'create page content',
+      //'create page content',
     ));
     $this->drupalLogin($this->user);
   }
