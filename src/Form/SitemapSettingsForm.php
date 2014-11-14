@@ -44,21 +44,24 @@ class SitemapSettingsForm extends ConfigFormBase {
    * @param \Drupal\Core\Extension\ModuleHandler $module_handler
    *   The module handler.
    */
-  public function __construct(ConfigFactory $config_factory, ModuleHandler $module_handler, BookManagerInterface $book_manager) {
+  public function __construct(ConfigFactory $config_factory, ModuleHandler $module_handler) {
     parent::__construct($config_factory);
     $this->moduleHandler = $module_handler;
-    $this->bookManager = $book_manager;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
+    $module_handler = $container->get('module_handler');
+    $form = new static(
       $container->get('config.factory'),
-      $container->get('module_handler'),
-      $container->get('book.manager')
+      $module_handler
     );
+    if ($module_handler->moduleExists('book')) {
+      $form->setBookManager($container->get('book.manager'));
+    }
+    return $form;
   }
 
   /**
@@ -66,6 +69,10 @@ class SitemapSettingsForm extends ConfigFormBase {
    */
   public function getFormId() {
     return 'site_map_settings';
+  }
+
+  public function setBookManager(BookManagerInterface $book_manager) {
+    $this->bookManager = $book_manager;
   }
 
   /**
