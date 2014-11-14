@@ -277,7 +277,7 @@ class SitemapSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $values = $form_state['values'];
+    $values = $form_state->getValues();
 
     $this->configFactory->get('site_map.settings')
       ->set('site_map_page_title', $values['site_map_page_title'])
