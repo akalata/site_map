@@ -2,38 +2,30 @@
 
 /**
  * @file
- * Tests for the site_map module.
+ * Contains \Drupal\site_map\Tests\SiteMapTest.
  */
+
+namespace Drupal\site_map\Tests;
+
+use Drupal\simpletest\WebTestBase;
 
 /**
  * Test case class for sitemap tests.
+ *
+ * @group site_map
  */
-class SiteMapTest extends DrupalWebTestCase {
+class SiteMapTest extends WebTestBase {
+
   /**
-   * The getInfo() method provides information about the test.
+   * Modules to enable.
    *
-   * In order for the test to be run, the getInfo() method needs
-   * to be implemented.
+   * @var array
    */
-  public static function getInfo() {
-    return array(
-      'name' => t('Site map'),
-      'description' => t('Tests main module logic.'),
-      'group' => t('Sitemap'),
-    );
-  }
+  public static $modules = array('site_map');
 
-  /**
-   * Prepares the testing environment.
-   */
-  public function setUp() {
-    parent::setUp('site_map');
-  }
+  protected function setUp() {
+    parent::setUp();
 
-  /**
-   * Tests that a new node with a menu item gets listed at /sitemap.
-   */
-  public function testNodeAddition() {
     // Create user.
     $this->user = $this->drupalCreateUser(array(
       'administer site configuration',
@@ -43,7 +35,12 @@ class SiteMapTest extends DrupalWebTestCase {
       'create page content',
     ));
     $this->drupalLogin($this->user);
+  }
 
+  /**
+   * Tests that a new node with a menu item gets listed at /sitemap.
+   */
+  public function testNodeAddition() {
     // Configure module to list items of Main menu.
     $edit = array(
       'site_map_show_menus[main-menu]' => '1',
@@ -53,7 +50,7 @@ class SiteMapTest extends DrupalWebTestCase {
     $this->assertText(t('The configuration options have been saved.'));
 
     // Create dummy node.
-    $title = $this->randomName(8);
+    $title = $this->randomString();
     $edit = array(
       'title' => $title,
       'menu[enabled]' => '1',
