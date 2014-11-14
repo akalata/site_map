@@ -15,17 +15,6 @@ use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\Core\Url;
 
 /**
- * Implements hook_permission().
- */
-function site_map_permission() {
-  return array(
-    'access site map' => array(
-      'title' => t('View published site map'),
-    ),
-  );
-}
-
-/**
  * Implements hook_theme().
  */
 function site_map_theme() {
