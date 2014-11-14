@@ -14,6 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\system\Entity\Menu;
 use Drupal\book\BookManagerInterface;
+use Drupal\Core\Url;
 
 /**
  * Provides a configuration form for sitemap.
@@ -85,7 +86,7 @@ class SitemapSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Page title'),
       '#default_value' => $config->get('site_map_page_title'),
-      '#description' => $this->t('Page title that will be used on the <a href="@link">site map page</a>.', array('@link' => url('sitemap'))),
+      '#description' => $this->t('Page title that will be used on the <a href="@link">site map page</a>.', array('@link' => Url::fromRoute('site_map.page'))),
     );
 
     $site_map_message = $config->get('site_map_message');
