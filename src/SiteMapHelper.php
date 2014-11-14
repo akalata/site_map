@@ -10,6 +10,7 @@ namespace Drupal\site_map;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Component\Utility\String;
 use Drupal\Component\Utility\Xss;
+use Drupal\Core\Url;
 
 /**
  * Defines a helper class for stuff related to views data.
@@ -130,10 +131,10 @@ class SiteMapHelper {
       $output .= "\n<li>";
       $term_item = '';
       if ($forum_link) {
-        $term_item .= l($term->name, 'forum/' . $term->tid, array('attributes' => array('title' => $term->description__value)));
+        $term_item .= \Drupal::l($term->name, Url::fromRoute('forum.page', array('taxonomy_term' => $term->tid), array('attributes' => array('title' => $term->description__value))));
       }
       elseif ($term->count) {
-        $term_item .= l($term->name, 'taxonomy/term/' . $term->tid, array('attributes' => array('title' => $term->description__value)));
+        $term_item .= \Drupal::l($term->name, Url::fromRoute('entity.taxonomy_term.canonical', array('taxonomy_term' => $term->tid), array('attributes' => array('title' => $term->description__value))));
       }
       else {
         $term_item .= String::checkPlain($term->name);

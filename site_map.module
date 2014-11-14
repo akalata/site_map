@@ -162,7 +162,7 @@ function theme_site_map_feed_icon($variables) {
   }
 
   if (!empty($variables['url'])) {
-    $output = l($output, $variables['url'], array('attributes' => array('class' => 'feed-link'), 'html' => TRUE));
+    $output = \Drupal::l($output, Url::fromUri('base://' . $variables['url'], array('attributes' => array('class' => 'feed-link'), 'html' => TRUE)));
   }
 
   return $output;
@@ -348,7 +348,7 @@ function _site_map_blogs() {
     $title = t('Blogs');
     $output = '<div class="description">' . t('Community blog and recent blog authors at %sn.', array('%sn' => \Drupal::config('system.site')->get('name'))) . '</div>';
 
-    $blog_link = l(t('All blogs'), 'blog');
+    $blog_link = \Drupal::l(t('All blogs'), Url::fromUri('base://' . 'blog'));
     if ($config->get('site_map_show_rss_links') != 0) {
       $feed_icon = array(
         '#theme' => 'site_map_feed_icon',
@@ -432,7 +432,7 @@ function _site_map_audio() {
   $options = array();
   if (\Drupal::service('module_handler')->moduleExists('audio')) {
     $title = t('Audio');
-    $output = l(t('Audio content'), 'audio');
+    $output = \Drupal::l(t('Audio content'), Url::fromUri('base://' . 'audio'));
     if ($config->get('site_map_show_rss_links') != 0) {
       $feed_icon = array(
         '#theme' => 'site_map_feed_icon',
@@ -478,7 +478,7 @@ function _site_map_video() {
   $options = array();
   if (\Drupal::service('module_handler')->moduleExists('video')) {
     $title = t('Video');
-    $output = l(t('Video content'), 'video');
+    $output = \Drupal::l(t('Video content'), Url::fromUri('base://' . 'video'));
     if ($config->get('site_map_show_rss_links') != 0) {
       $feed_icon = array(
         '#theme' => 'site_map_feed_icon',
@@ -541,7 +541,7 @@ function _site_map_books() {
           $output .= drupal_render($tree_output);
         }
         else {
-          $book_titles[] = l($book['title'], \Drupal::url('node.view', array('node' => $book['bid'])));
+          $book_titles[] = \Drupal::l($book['title'], \Drupal::url('node.view', array('node' => $book['bid'])));
         }
       }
     }
