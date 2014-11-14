@@ -12,6 +12,7 @@ use Drupal\Component\Utility\String;
 use Drupal\Core\Template\Attribute;
 use Drupal\system\Entity\Menu;
 use Drupal\Core\Menu\MenuTreeParameters;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_permission().
@@ -288,7 +289,7 @@ function _site_map_front_page() {
   $class = array();
   $options = array();
   $title = t('Front page');
-  $output = l(t('Front page of %sn', array('%sn' => \Drupal::config('system.site')->get('name'))), '<front>', array('html' => TRUE));
+  $output = \Drupal::l(t('Front page of %sn', array('%sn' => \Drupal::config('system.site')->get('name'))), Url::fromRoute('<front>', [], array('html' => TRUE)));
 
   if ($config->get('site_map_show_rss_links') != 0) {
     $feed_icon = array(
