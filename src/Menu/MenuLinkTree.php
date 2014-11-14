@@ -87,7 +87,7 @@ class MenuLinkTree extends CoreMenuLinkTree {
       // Allow menu-specific theme overrides.
       $build['#theme_wrappers'][] = 'site_map_menu_tree__' . strtr($menu_name, '-', '_');
       // Set cache tag.
-      $build['#cache']['tags']['menu'][$menu_name] = $menu_name;
+      $build['#cache']['tags'][] = 'menu:' . $menu_name;
     }
 
     return $build;
