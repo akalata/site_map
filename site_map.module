@@ -41,21 +41,26 @@ function site_map_theme() {
         'attributes' => array(),
         'options' => NULL,
       ),
+    'function' => 'theme_site_map_box',
     ),
     'site_map_feed_icon' => array(
       'variables' => array(
         'url' => NULL,
         'type' => 'node',
       ),
+    'function' => 'theme_site_map_feed_icon',
     ),
     'site_map_menu_link' => array(
       'render element' => 'element',
+      'function' => 'theme_site_map_menu_link',
     ),
     'site_map_menu_tree' => array(
       'render element' => 'tree',
+      'function' => 'theme_site_map_menu_tree',
     ),
     'site_map_rss_legend' => array(
       'variables' => array(),
+      'function' => 'theme_site_map_rss_legend',
     ),
   );
 }
