@@ -32,7 +32,6 @@ class SiteMapTest extends WebTestBase {
     $this->user = $this->drupalCreateUser(array(
       'administer site configuration',
       'access site map',
-      'access administration pages',
       'administer menu',
       'administer nodes',
       'create page content',
