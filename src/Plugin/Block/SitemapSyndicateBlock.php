@@ -8,8 +8,9 @@
 namespace Drupal\site_map\Plugin\Block;
 
 use Drupal\block\Annotation\Block;
-use Drupal\block\BlockBase;
+use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Annotation\Translation;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Provides a 'Syndicate (site map)' block.
@@ -22,20 +23,23 @@ use Drupal\Core\Annotation\Translation;
 class SitemapSyndicateBlock extends BlockBase {
 
   /**
-   * Overrides \Drupal\block\BlockBase::defaultConfiguration().
+   * {@inheritdoc}
    */
   public function defaultConfiguration() {
     return array(
       'sitemap_block_feed_icon' => TRUE,
       'sitemap_block_more_link' => TRUE,
-      'cache' => DRUPAL_NO_CACHE,
+      'cache' => array(
+        // No caching.
+        'max_age' => 0,
+      ),
     );
   }
 
   /**
-   * Overrides \Drupal\block\BlockBase::blockForm().
+   * {@inheritdoc}
    */
-  public function blockForm($form, &$form_state) {
+  public function blockForm($form, FormStateInterface $form_state) {
     $form['sitemap_block_feed_icon'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display feed icon'),
@@ -51,15 +55,15 @@ class SitemapSyndicateBlock extends BlockBase {
   }
 
   /**
-   * Overrides \Drupal\block\BlockBase::blockSubmit().
+   * {@inheritdoc}
    */
-  public function blockSubmit($form, &$form_state) {
-    $this->configuration['sitemap_block_feed_icon'] = $form_state['values']['sitemap_block_feed_icon'];
-    $this->configuration['sitemap_block_more_link'] = $form_state['values']['sitemap_block_more_link'];
+  public function blockSubmit($form, FormStateInterface $form_state) {
+    $this->configuration['sitemap_block_feed_icon'] = $form_state->getValue('sitemap_block_feed_icon');
+    $this->configuration['sitemap_block_more_link'] = $form_state->getValue('sitemap_block_more_link');
   }
 
   /**
-   * Implements \Drupal\block\BlockBase::blockBuild().
+   * {@inheritdoc}
    */
   public function build() {
     $output = '';
