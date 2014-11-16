@@ -21,18 +21,21 @@ class SiteMapTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('site_map', 'node');
+  public static $modules = array('site_map', 'node', 'menu_ui');
 
   protected function setUp() {
     parent::setUp();
+
+    $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
 
     // Create user.
     $this->user = $this->drupalCreateUser(array(
       'administer site configuration',
       'access site map',
-      //'administer menu',
+      'access administration pages',
+      'administer menu',
       'administer nodes',
-      //'create page content',
+      'create page content',
     ));
     $this->drupalLogin($this->user);
   }
@@ -43,24 +46,24 @@ class SiteMapTest extends WebTestBase {
   public function testNodeAddition() {
     // Configure module to list items of Main menu.
     $edit = array(
-      'site_map_show_menus[main-menu]' => '1',
+      'site_map_show_menus[main]' => '1',
     );
-    $this->drupalPost('admin/config/search/sitemap',
+    $this->drupalPostForm('admin/config/search/sitemap',
                       $edit, t('Save configuration'));
     $this->assertText(t('The configuration options have been saved.'));
 
     // Create dummy node.
     $title = $this->randomString();
     $edit = array(
-      'title' => $title,
+      'title[0][value]' => $title,
       'menu[enabled]' => '1',
-      'menu[link_title]' => $title,
+      'menu[title]' => $title,
     );
-    $this->drupalPost('node/add/page',
-                      $edit, t('Save'));
+    $this->drupalPostForm('node/add/page',
+                      $edit, t('Save and publish'));
 
     // Check that dummy node is listed at /sitemap
     $this->drupalGet('sitemap');
-    $this->assertText($title);
+    $this->assertLink($title);
   }
 }
