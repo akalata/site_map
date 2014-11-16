@@ -11,6 +11,7 @@ use Drupal\block\Annotation\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Annotation\Translation;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 
 /**
  * Provides a 'Syndicate (site map)' block.
@@ -69,16 +70,20 @@ class SitemapSyndicateBlock extends BlockBase {
     $output = '';
     $config = \Drupal::config('site_map.settings');
     if ($this->configuration['sitemap_block_feed_icon']) {
-      $output .= theme('feed_icon', array(
-        'url' => $config->get('site_map_rss_front'),
-        'title' => t('Syndicate'),
-      ));
+      $feed_icon = array(
+        '#theme' => 'feed_icon',
+        '#url' => $config->get('site_map_rss_front'),
+        '#title' => t('Syndicate'),
+      );
+      $output .= drupal_render($feed_icon);
     }
     if ($this->configuration['sitemap_block_more_link']) {
-      $output .= theme('more_link', array(
-        'url' => 'sitemap',
-        'title' => t('View the site map to see more RSS feeds.'),
-      ));
+      $more_link = array(
+        '#type' => 'more_link',
+        '#url' => Url::fromUri('base://sitemap'),
+        '#attributes' => array('title' => t('View the site map to see more RSS feeds.')),
+      );
+      $output .= drupal_render($more_link);
     }
 
     return array(
