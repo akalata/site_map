@@ -46,18 +46,18 @@ ul.site-map-menu {
   text-align: right;
 }
 .site-map-menu .expanded {
-  list-style-image: url(../../core/misc/menu-expanded.png);
+  list-style-image: url(../../../core/misc/menu-expanded.png);
   list-style-type: circle;
 }
 .site-map-menu .collapsed {
-  list-style-image: url(../../core/misc/menu-collapsed.png); /* LTR */
+  list-style-image: url(../../../core/misc/menu-collapsed.png); /* LTR */
   list-style-type: disc;
 }
 [dir="rtl"] .site-map-menu .collapsed {
-  list-style-image: url(../../core/misc/menu-collapsed-rtl.png);
+  list-style-image: url(../../../core/misc/menu-collapsed-rtl.png);
 }
 ul.site-map-menu .leaf {
-  list-style-image: url("../../misc/menu-leaf.png");
+  list-style-image: url("../../../misc/menu-leaf.png");
   list-style-type: disc;
 }
 ul.site-map-menu li {
@@ -73,6 +73,6 @@ ul.site-map-menu a.active {
  **/
 
 .site-map-box ul.menu .leaf {
-  list-style-image: url("../../misc/menu-leaf.png");
+  list-style-image: url("../../../misc/menu-leaf.png");
   list-style-type: disc;
 }

@@ -49,7 +49,9 @@ class SitemapController implements ContainerInjectionInterface {
 
     $config = \Drupal::config('site_map.settings');
     if ($config->get('site_map_css') != 1) {
-      $site_map['#attached']['css'][drupal_get_path('module', 'site_map') . '/site_map.theme.css'] = array();
+      $site_map['#attached']['library'] = array(
+        'site_map/site_map.theme',
+      );
     }
 
     return $site_map;
