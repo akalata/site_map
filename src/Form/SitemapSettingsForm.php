@@ -145,7 +145,6 @@ class SitemapSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Menus to include in the site map'),
       '#default_value' => $config->get('site_map_show_menus'),
       '#options' => $menu_options,
-      '#multiple' => TRUE,
     );
     $form['site_map_content']['site_map_show_menus_hidden'] = array(
       '#type' => 'checkbox',
