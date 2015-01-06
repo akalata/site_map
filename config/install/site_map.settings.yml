@@ -12,10 +12,10 @@ site_map_show_faq: false
 site_map_show_vocabularies: []
 site_map_show_description: true
 site_map_show_count: true
-site_map_categories_depth: all
+site_map_categories_depth: -1
 site_map_term_threshold: 0
 site_map_forum_threshold: -1
 site_map_rss_front: rss.xml
-site_map_show_rss_links: true
-site_map_rss_depth: all
+site_map_show_rss_links: 1
+site_map_rss_depth: -1
 site_map_css: false

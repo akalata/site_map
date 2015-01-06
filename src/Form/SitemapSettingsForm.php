@@ -277,16 +277,16 @@ class SitemapSettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $values = $form_state->getValues();
+    $config = $this->configFactory->get('site_map.settings');
 
-    $this->configFactory->get('site_map.settings')
-      ->set('site_map_page_title', $values['site_map_page_title'])
+    $config->set('site_map_page_title', $values['site_map_page_title'])
       ->set('site_map_message.value', $values['site_map_message']['value'])
       ->set('site_map_message.format', $values['site_map_message']['format'])
       ->set('site_map_show_front', $values['site_map_show_front'])
       ->set('site_map_show_titles', $values['site_map_show_titles'])
-      ->set('site_map_show_menus', $values['site_map_show_menus'])
+      ->set('site_map_show_menus', array_filter($values['site_map_show_menus']))
       ->set('site_map_show_menus_hidden', $values['site_map_show_menus_hidden'])
-      ->set('site_map_show_vocabularies', $values['site_map_show_vocabularies'])
+      ->set('site_map_show_vocabularies', array_filter($values['site_map_show_vocabularies']))
       ->set('site_map_show_description', $values['site_map_show_description'])
       ->set('site_map_show_count', $values['site_map_show_count'])
       ->set('site_map_categories_depth', $values['site_map_categories_depth'])
@@ -298,18 +298,15 @@ class SitemapSettingsForm extends ConfigFormBase {
       ->set('site_map_css', $values['site_map_css']);
 
     if ($this->moduleHandler->moduleExists('book')) {
-      $this->configFactory->get('site_map.settings')
-        ->set('site_map_show_books', $values['site_map_show_books'])
+      $config->set('site_map_show_books', array_filter($values['site_map_show_books']))
         ->set('site_map_books_expanded', $values['site_map_books_expanded']);
     }
 
     if ($this->moduleHandler->moduleExists('faq')) {
-      $this->configFactory->get('site_map.settings')
-        ->set('site_map_show_faq', $values['site_map_show_faq']);
+      $config->set('site_map_show_faq', $values['site_map_show_faq']);
     }
 
-    $this->configFactory->get('site_map.settings')
-      ->save();
+    $config->save();
 
     parent::submitForm($form, $form_state);
   }
