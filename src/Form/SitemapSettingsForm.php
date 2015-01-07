@@ -241,7 +241,7 @@ class SitemapSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('site_map_rss_depth'),
       '#size' => 3,
       '#maxlength' => 10,
-      '#description' => $this->t('Specify how many subcategories should be included in the RSS feed. Enter "all" to include all subcategories or "0" to include no subcategories.'),
+      '#description' => $this->t('Specify how many RSS feed links should be included. Enter "-1" to include with all categories and subcategories, "0" not to include with any categories or subcategories, or "1" not to include with subcategories only.'),
     );
 
     $form['site_map_css_options'] = array(

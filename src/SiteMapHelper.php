@@ -153,7 +153,7 @@ class SiteMapHelper {
         $term_item .= " ($term->count)";
       }
 
-      if ($config->get('site_map_show_rss_links') != 0) {
+      if ($config->get('site_map_show_rss_links') != 0 && ($rss_depth == -1 || $term->depth < $rss_depth)) {
         $feed_icon = array(
           '#theme' => 'site_map_feed_icon',
           '#url' => 'taxonomy/term/' . $term->tid . '/feed'
