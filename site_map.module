@@ -58,6 +58,7 @@ function site_map_theme() {
  * Returns HTML for a site map feed icon legend.
  */
 function theme_site_map_rss_legend() {
+  $output = '';
   $output .= '<p><strong>' . t('Legend:') . '</strong><br />';
   $feed_icon_node = array(
     '#theme' => 'site_map_feed_icon',
@@ -518,7 +519,7 @@ function _site_map_books() {
     $title = t('Books');
     $description = '<div class="description">' . t('Books at %sn.', array('%sn' => \Drupal::config('system.site')->get('name'))) . '</div>';
 
-    foreach (\Drupal::service('book.manager')->getAllBooks() as $book_id => $book) {
+    foreach (\Drupal::service('book.manager')->getAllBooks() as $book) {
       if (in_array($book['bid'], $bids)) {
         if ($books_expanded) {
           // Retrieve the expanded tree.
