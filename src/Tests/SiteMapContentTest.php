@@ -2,77 +2,19 @@
 
 /**
  * @file
- * Contains \Drupal\site_map\Tests\SiteMapTest.
+ * Contains \Drupal\site_map\Tests\SiteMapContentTest.
  */
 
 namespace Drupal\site_map\Tests;
 
-use Drupal\simpletest\WebTestBase;
-use Drupal\Component\Utility\Unicode;
-use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\site_map\Tests\SiteMapTestBase;
 
 /**
- * Test case class for sitemap tests.
+ * Test case class for site map's content tests.
  *
  * @group site_map
  */
-class SiteMapTest extends WebTestBase {
-
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = array('site_map', 'node', 'menu_ui', 'taxonomy');
-
-  protected function setUp() {
-    parent::setUp();
-
-    // Create content type.
-    $this->drupalCreateContentType(array(
-      'type' => 'page',
-      'name' => 'Basic page',
-    ));
-
-    // Create filter format.
-    $restricted_html_format = entity_create('filter_format', array(
-      'format' => 'restricted_html',
-      'name' => 'Restricted HTML',
-      'filters' => array(
-        'filter_html' => array(
-          'status' => TRUE,
-          'weight' => -10,
-          'settings' => array(
-            'allowed_html' => '<p> <br> <strong> <a> <em> <h4>',
-          ),
-        ),
-        'filter_autop' => array(
-          'status' => TRUE,
-          'weight' => 0,
-        ),
-        'filter_url' => array(
-          'status' => TRUE,
-          'weight' => 0,
-        ),
-        'filter_htmlcorrector' => array(
-          'status' => TRUE,
-          'weight' => 10,
-        ),
-      ),
-    ));
-    $restricted_html_format->save();
-
-    // Create user then login.
-    $this->user = $this->drupalCreateUser(array(
-      'administer site configuration',
-      'access site map',
-      'administer menu',
-      'administer nodes',
-      'create page content',
-      $restricted_html_format->getPermissionName(),
-    ));
-    $this->drupalLogin($this->user);
-  }
+class SiteMapContentTest extends SiteMapTestBase {
 
   /**
    * Tests page title.
@@ -125,7 +67,7 @@ class SiteMapTest extends WebTestBase {
     $elements = $this->cssSelect(".site-map-box h2:contains('" . t('Front page') . "')");
     $this->assertEqual(count($elements), 1, 'Front page is included.');
 
-    // Configure module not to show front page.
+    // Configure module to hide front page.
     $edit = array(
       'site_map_show_front' => FALSE,
     );
@@ -146,7 +88,7 @@ class SiteMapTest extends WebTestBase {
     $elements = $this->cssSelect('.site-map-box h2');
     $this->assertTrue(count($elements) > 0, 'Titles are included.');
 
-    // Configure module not to show titles.
+    // Configure module to hide titles.
     $edit = array(
       'site_map_show_titles' => FALSE,
     );
@@ -184,7 +126,7 @@ class SiteMapTest extends WebTestBase {
       // one child menu item of that menu.
       'menu[menu_parent]' => 'main:',
     );
-    $this->drupalPostForm('node/add/page', $edit, t('Save and publish'));
+    $this->drupalPostForm('node/add/article', $edit, t('Save and publish'));
 
     // Create dummy node with disabled menu item.
     $node_2_title = $this->randomString();
@@ -194,7 +136,7 @@ class SiteMapTest extends WebTestBase {
       'menu[title]' => $node_2_title,
       'menu[menu_parent]' => 'main:',
     );
-    $this->drupalPostForm('node/add/page', $edit, t('Save and publish'));
+    $this->drupalPostForm('node/add/article', $edit, t('Save and publish'));
 
     // Disable menu item.
     $menu_links = entity_load_multiple_by_properties('menu_link_content', array('title' => $node_2_title));
@@ -216,7 +158,7 @@ class SiteMapTest extends WebTestBase {
 
     // Configure module to show all menu items.
     $edit = array(
-      'site_map_show_menus_hidden' => TRUE
+      'site_map_show_menus_hidden' => TRUE,
     );
     $this->drupalPostForm('admin/config/search/sitemap', $edit, t('Save configuration'));
 
@@ -227,68 +169,16 @@ class SiteMapTest extends WebTestBase {
   }
 
   /**
-   * Create taxonomy term reference field for testing categories.
-   *
-   * @return string
-   *   Created field name.
-   */
-  protected function createTaxonomyTermReferenceField() {
-    // Create a new vocabulary.
-    $vocabulary = entity_create('taxonomy_vocabulary', array(
-      'name' => 'Tags',
-      'vid' => 'tags',
-    ));
-    $vocabulary->save();
-
-    // Create new taxonomy term reference field.
-    $field_tags_name = Unicode::strtolower($this->randomMachineName());
-    $field_storage = entity_create('field_storage_config', array(
-      'field_name' => $field_tags_name,
-      'entity_type' => 'node',
-      'type' => 'taxonomy_term_reference',
-      'cardinality' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
-      'settings' => array(
-        'allowed_values' => array(
-          array(
-            'vocabulary' => $vocabulary->id(),
-            'parent' => '0',
-          ),
-        ),
-      )
-    ));
-    $field_storage->save();
-    entity_create('field_config', array(
-      'field_storage' => $field_storage,
-      'bundle' => 'page',
-    ))->save();
-    entity_get_form_display('node', 'page', 'default')
-      ->setComponent($field_tags_name, array(
-        'type' => 'taxonomy_autocomplete',
-      ))
-      ->save();
-    entity_get_display('node', 'page', 'full')
-      ->setComponent($field_tags_name, array(
-        'type' => 'taxonomy_term_reference_link',
-      ))
-      ->save();
-
-    return $field_tags_name;
-  }
-
-  /**
    * Tests categories.
    */
   public function testCategories() {
-    $tags = array(
-      $this->randomMachineName(),
-      $this->randomMachineName(),
-      $this->randomMachineName(),
-    );
-    $field_tags_name = $this->createTaxonomyTermReferenceField();
+    $tags = $this->getTags();
+    $vocabulary = $this->createVocabulary();
+    $field_tags_name = $this->createTaxonomyTermReferenceField($vocabulary);
 
-    // Assert that 'Tags' category is not included in the site map by default.
+    // Assert that the category is not included in the site map by default.
     $this->drupalGet('/sitemap');
-    $elements = $this->cssSelect(".site-map-box h2:contains('" . t('Tags') . "')");
+    $elements = $this->cssSelect(".site-map-box h2:contains('" . $vocabulary->label() . "')");
     $this->assertEqual(count($elements), 0, 'Tags category is not included.');
 
     // Assert that no tags are listed in the site map.
@@ -296,9 +186,10 @@ class SiteMapTest extends WebTestBase {
       $this->assertNoLink($tag);
     }
 
-    // Configure module to show 'Tags' category.
+    // Configure module to show categories.
+    $vid = $vocabulary->id();
     $edit = array(
-      'site_map_show_vocabularies[tags]' => TRUE,
+      "site_map_show_vocabularies[$vid]" => $vid,
     );
     $this->drupalPostForm('admin/config/search/sitemap', $edit, t('Save configuration'));
 
@@ -310,11 +201,11 @@ class SiteMapTest extends WebTestBase {
       'menu[title]' => $title,
       $field_tags_name => implode(',', $tags),
     );
-    $this->drupalPostForm('node/add/page', $edit, t('Save and publish'));
+    $this->drupalPostForm('node/add/article', $edit, t('Save and publish'));
 
-    // Assert that 'Tags' category is included in the site map.
+    // Assert that the category is included in the site map.
     $this->drupalGet('sitemap');
-    $elements = $this->cssSelect(".site-map-box h2:contains('" . t('Tags') . "')");
+    $elements = $this->cssSelect(".site-map-box h2:contains('" . $vocabulary->label() . "')");
     $this->assertEqual(count($elements), 1, 'Tags category is included.');
 
     // Assert that all tags are listed in the site map.
