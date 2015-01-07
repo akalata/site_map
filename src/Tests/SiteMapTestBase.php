@@ -61,7 +61,7 @@ abstract class SiteMapTestBase extends TaxonomyTestBase {
       'administer menu',
       'administer nodes',
       'create article content',
-      'administer taxonomy', 
+      'administer taxonomy',
       $restricted_html_format->getPermissionName(),
     ));
     $this->drupalLogin($this->user);
