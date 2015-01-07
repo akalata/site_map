@@ -79,7 +79,7 @@ class SiteMapHelper {
    * Render the taxonomy tree.
    *
    * @param string $vid
-   *   The results of taxonomy_get_tree() with optional 'count' fields.
+   *   Vocabulary id.
    * @param string $name
    *   An optional name for the tree. (Default: NULL)
    * @param string $description
@@ -98,6 +98,15 @@ class SiteMapHelper {
     $config = \Drupal::config('site_map.settings');
     $threshold = $config->get('site_map_term_threshold');
 
+    // Taxonomy terms depth.
+    $depth = $config->get('site_map_categories_depth');
+    if ($depth <= -1) {
+      $depth = NULL;
+    }
+
+    // RSS depth.
+    $rss_depth = $config->get('site_map_rss_depth');
+
     $forum_link = FALSE;
 
     $last_depth = -1;
@@ -105,7 +114,8 @@ class SiteMapHelper {
     $output .= !empty($description) && $config->get('site_map_show_description') ? '<div class="description">' . Xss::filterAdmin($description) . "</div>\n" : '';
 
     // taxonomy_get_tree() honors access controls.
-    $tree = taxonomy_get_tree($vid);
+    // Included patch from https://www.drupal.org/node/1593556.
+    $tree = taxonomy_get_tree($vid, 0, $depth);
     foreach ($tree as $term) {
       $term->count = count(taxonomy_select_nodes($term->tid));
       if ($term->count <= $threshold) {

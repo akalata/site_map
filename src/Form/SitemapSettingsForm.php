@@ -197,7 +197,7 @@ class SitemapSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('site_map_categories_depth'),
       '#size' => 3,
       '#maxlength' => 10,
-      '#description' => $this->t('Specify how many subcategories should be included on the categorie page. Enter "all" to include all subcategories, "0" to include no subcategories, or "-1" not to append the depth at all.'),
+      '#description' => $this->t('Specify how many categories and subcategories should be included. Enter "-1" to include all categories and subcategories, "0" not to include categories at all, or "1" not to include subcategories.'),
     );
     $form['site_map_taxonomy_options']['site_map_term_threshold'] = array(
       '#type' => 'textfield',
