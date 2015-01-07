@@ -17,6 +17,9 @@ use Drupal\Component\Utility\Unicode;
  */
 class SiteMapRssTest extends SiteMapTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp();
 

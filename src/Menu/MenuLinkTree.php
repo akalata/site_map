@@ -29,7 +29,8 @@ class MenuLinkTree extends CoreMenuLinkTree {
 
     // Pull out just the menu links we are going to render so that we
     // get an accurate count for the first/last classes.
-    // Thanks for fix by zhuber at https://drupal.org/node/1331104#comment-5200266
+    // Thanks for fix by zhuber at
+    // https://drupal.org/node/1331104#comment-5200266
     foreach ($tree as $data) {
       /** @var \Drupal\Core\Menu\MenuLinkInterface $link */
       $link = $data->link;

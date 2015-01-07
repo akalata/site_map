@@ -2,7 +2,7 @@
 
 /**
  * @file
- * site_map.module
+ * Provides a site map functionality.
  *
  * Original author: Nic Ivy
  * Now maintained by Fredrik Jonsson fredrik at combonet dot se
@@ -30,14 +30,14 @@ function site_map_theme() {
         'attributes' => array(),
         'options' => NULL,
       ),
-    'function' => 'theme_site_map_box',
+      'function' => 'theme_site_map_box',
     ),
     'site_map_feed_icon' => array(
       'variables' => array(
         'url' => NULL,
         'type' => 'node',
       ),
-    'function' => 'theme_site_map_feed_icon',
+      'function' => 'theme_site_map_feed_icon',
     ),
     'site_map_menu_link' => array(
       'render element' => 'element',
@@ -61,12 +61,12 @@ function theme_site_map_rss_legend() {
   $output .= '<p><strong>' . t('Legend:') . '</strong><br />';
   $feed_icon_node = array(
     '#theme' => 'site_map_feed_icon',
-    '#type' => 'node'
+    '#type' => 'node',
   );
   $output .= '<span class="rss">' . drupal_render($feed_icon_node) . '</span> ' . t('Link to a content RSS feed');
   $feed_icon_comment = array(
     '#theme' => 'site_map_feed_icon',
-    '#type' => 'comment'
+    '#type' => 'comment',
   );
   $output .= '<br /><span class="rss">' . drupal_render($feed_icon_comment) . '</span> ' . t('Link to a comment RSS feed');
   $output .= '</p>';
@@ -93,7 +93,7 @@ function template_preprocess_site_map_box(&$variables) {
  * @return string
  *   Returns sitemap display in DIV.
  */
-function theme_site_map_box($variables) {
+function theme_site_map_box(array $variables) {
   $title = $variables['title'];
   $content = $variables['content'];
   $attributes = $variables['attributes'];
@@ -125,7 +125,7 @@ function theme_site_map_box($variables) {
  * @return string
  *   Constructs and returns html with feed image icon.
  */
-function theme_site_map_feed_icon($variables) {
+function theme_site_map_feed_icon(array $variables) {
   $output = '';
 
   switch ($variables['type']) {
@@ -186,7 +186,7 @@ function template_preprocess_site_map_menu_tree(&$variables) {
  * @see template_preprocess_menu_tree()
  * @ingroup themeable
  */
-function theme_site_map_menu_tree($variables) {
+function theme_site_map_menu_tree(array $variables) {
   return '<ul class="site-map-menu">' . $variables['tree'] . '</ul>';
 }
 
@@ -234,7 +234,7 @@ function template_preprocess_site_map(&$variables) {
 
   if (($config->get('site_map_show_rss_links') != 0) && \Drupal::service('module_handler')->moduleExists('commentrss') && \Drupal::config('commentrss.settings')->get('commentrss_site')) {
     $rss_legend = array(
-      '#theme' => 'site_map_rss_legend'
+      '#theme' => 'site_map_rss_legend',
     );
     $variables['rss_legend'] = drupal_render($rss_legend);
   }
@@ -288,14 +288,14 @@ function _site_map_front_page() {
   if ($config->get('site_map_show_rss_links') != 0) {
     $feed_icon = array(
       '#theme' => 'site_map_feed_icon',
-      '#url' => $config->get('site_map_rss_front')
+      '#url' => $config->get('site_map_rss_front'),
     );
     $rss_link = drupal_render($feed_icon);
     if (\Drupal::service('module_handler')->moduleExists('commentrss') && \Drupal::config('commentrss.settings')->get('commentrss_site')) {
       $feed_icon = array(
         '#theme' => 'site_map_feed_icon',
         '#url' => 'crss',
-        '#type' => 'comment'
+        '#type' => 'comment',
       );
       $rss_link .= ' ' . drupal_render($feed_icon);
     }
@@ -341,7 +341,7 @@ function _site_map_blogs() {
     if ($config->get('site_map_show_rss_links') != 0) {
       $feed_icon = array(
         '#theme' => 'site_map_feed_icon',
-        '#url' => 'blog/feed'
+        '#url' => 'blog/feed',
       );
       $rss_link = drupal_render($feed_icon);
       if ($config->get('site_map_show_rss_links') == 1) {
@@ -373,7 +373,7 @@ function _site_map_blogs() {
       if ($config->get('site_map_show_rss_links') != 0) {
         $feed_icon = array(
           '#theme' => 'site_map_feed_icon',
-          '#url' => "blog/$blog->uid/feed"
+          '#url' => "blog/$blog->uid/feed",
         );
         $rss_link = drupal_render($feed_icon);
         if ($config->get('site_map_show_rss_links') == 1) {
@@ -391,7 +391,7 @@ function _site_map_blogs() {
 
     $blog_list = array(
       '#theme' => 'item_list',
-      '#items' => $blogs
+      '#items' => $blogs,
     );
     $output .= drupal_render($blog_list);
 
@@ -425,7 +425,7 @@ function _site_map_audio() {
     if ($config->get('site_map_show_rss_links') != 0) {
       $feed_icon = array(
         '#theme' => 'site_map_feed_icon',
-        '#url' => 'audio/feed'
+        '#url' => 'audio/feed',
       );
       $rss_link = drupal_render($feed_icon);
       if ($config->get('site_map_show_rss_links') == 1) {
@@ -471,7 +471,7 @@ function _site_map_video() {
     if ($config->get('site_map_show_rss_links') != 0) {
       $feed_icon = array(
         '#theme' => 'site_map_feed_icon',
-        '#url' => 'video/feed'
+        '#url' => 'video/feed',
       );
       $rss_link = drupal_render($feed_icon);
       if ($config->get('site_map_show_rss_links') == 1) {
@@ -539,7 +539,7 @@ function _site_map_books() {
     if (!$books_expanded && !empty($book_titles)) {
       $book_titles = array(
         '#theme' => 'item_list',
-        '#items' => $book_titles
+        '#items' => $book_titles,
       );
       $output .= drupal_render($book_titles);
     }

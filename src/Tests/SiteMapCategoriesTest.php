@@ -16,6 +16,9 @@ use Drupal\site_map\Tests\SiteMapTestBase;
  */
 class SiteMapCategoriesTest extends SiteMapTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp();
 
@@ -192,9 +195,9 @@ class SiteMapCategoriesTest extends SiteMapTestBase {
     }
 
     // Create dummy node, assign it to tag 1 and tag 3. Current structure is:
-    // tag 1 (1)
-    //   tag 2 (0)
-    //     tag 3 (1)
+    // + tag 1 (1)
+    // |-- tag 2 (0)
+    // |---- tag 3 (1)
     $title = $this->randomString();
     $edit = array(
       'title[0][value]' => $title,
@@ -245,9 +248,9 @@ class SiteMapCategoriesTest extends SiteMapTestBase {
     $this->assertNoText($tags[2]);
 
     // Assign node to tag 2. Current structure is:
-    // tag 1 (1)
-    //   tag 2 (1)
-    //     tag 3 (1)
+    // + tag 1 (1)
+    // |-- tag 2 (1)
+    // |---- tag 3 (1)
     $nodes = entity_load_multiple_by_properties('node', array('title' => $title));
     $node = reset($nodes);
     $nid = $node->id();

@@ -48,7 +48,7 @@ class SiteMapHelper {
    * @param bool $set_value
    *   The option, on or off, or strings or ints for other options.
    */
-  public function setOption(&$options, $option_string, $equal_param, $set_string, $set_value) {
+  public function setOption(array &$options, $option_string, $equal_param, $set_string, $set_value) {
     $config = $this->configFactory->get('site_map.settings');
     if ($config->get($option_string) == $equal_param) {
       $options[$set_string] = $set_value;
@@ -81,9 +81,9 @@ class SiteMapHelper {
    * @param string $vid
    *   Vocabulary id.
    * @param string $name
-   *   An optional name for the tree. (Default: NULL)
+   *   An optional name for the tree. (Default: NULL).
    * @param string $description
-   *   $description An optional description of the tree. (Default: NULL)
+   *   $description An optional description of the tree. (Default: NULL).
    *
    * @return string
    *   A string representing a rendered tree.
@@ -93,7 +93,7 @@ class SiteMapHelper {
     $options = array();
     $class = array();
 
-    $title = $name ? String::checkPlain(t($name)) : '';
+    $title = $name ? String::checkPlain($name) : '';
 
     $config = \Drupal::config('site_map.settings');
     $threshold = $config->get('site_map_term_threshold');
@@ -156,7 +156,7 @@ class SiteMapHelper {
       if ($config->get('site_map_show_rss_links') != 0 && ($rss_depth == -1 || $term->depth < $rss_depth)) {
         $feed_icon = array(
           '#theme' => 'site_map_feed_icon',
-          '#url' => 'taxonomy/term/' . $term->tid . '/feed'
+          '#url' => 'taxonomy/term/' . $term->tid . '/feed',
         );
         $rss_link = drupal_render($feed_icon);
         if ($config->get('site_map_show_rss_links') == 1) {
@@ -198,4 +198,3 @@ class SiteMapHelper {
   }
 
 }
-

@@ -23,6 +23,9 @@ abstract class SiteMapTestBase extends TaxonomyTestBase {
    */
   public static $modules = array('site_map', 'node', 'menu_ui');
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp();
 
@@ -35,7 +38,7 @@ abstract class SiteMapTestBase extends TaxonomyTestBase {
           'status' => TRUE,
           'weight' => -10,
           'settings' => array(
-            'allowed_html' => '<p> <br> <strong> <a> <em> <h4>',
+            'allowed_html' => '<p> <br /> <strong> <a> <em> <h4>',
           ),
         ),
         'filter_autop' => array(
@@ -145,7 +148,7 @@ abstract class SiteMapTestBase extends TaxonomyTestBase {
             'parent' => '0',
           ),
         ),
-      )
+      ),
     ));
     $field_storage->save();
     entity_create('field_config', array(

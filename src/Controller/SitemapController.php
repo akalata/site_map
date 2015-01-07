@@ -42,6 +42,12 @@ class SitemapController implements ContainerInjectionInterface {
     );
   }
 
+  /**
+   * Controller for /sitemap.
+   *
+   * @return array
+   *   Renderable string.
+   */
   public function buildPage() {
     $site_map = array(
       '#theme' => 'site_map',
@@ -55,13 +61,13 @@ class SitemapController implements ContainerInjectionInterface {
     }
 
     return $site_map;
-//    return drupal_render($site_map);
   }
 
   /**
    * Returns site map page's title.
    *
    * @return string
+   *   Site map page title.
    */
   public function getTitle() {
     $config = \Drupal::config('site_map.settings');

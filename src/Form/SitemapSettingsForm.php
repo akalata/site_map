@@ -40,8 +40,6 @@ class SitemapSettingsForm extends ConfigFormBase {
    *
    * @param \Drupal\Core\Config\ConfigFactory $config_factory
    *   The factory for configuration objects.
-   * @param \Drupal\Core\Config\Context\ContextInterface $context
-   *   The configuration context.
    * @param \Drupal\Core\Extension\ModuleHandler $module_handler
    *   The module handler.
    */
@@ -72,6 +70,12 @@ class SitemapSettingsForm extends ConfigFormBase {
     return 'site_map_settings';
   }
 
+  /**
+   * Set book manager service.
+   *
+   * @param \Drupal\book\BookManagerInterface $book_manager
+   *   Book manager service to set.
+   */
   public function setBookManager(BookManagerInterface $book_manager) {
     $this->bookManager = $book_manager;
   }
@@ -117,7 +121,7 @@ class SitemapSettingsForm extends ConfigFormBase {
 
     if ($this->moduleHandler->moduleExists('book')) {
       $book_options = array();
-      foreach ($this->bookManager->getAllBooks() as $book_id => $book) {
+      foreach ($this->bookManager->getAllBooks() as $book) {
         $book_options[$book['bid']] = $book['title'];
       }
       $form['site_map_content']['site_map_show_books'] = array(

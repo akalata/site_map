@@ -23,6 +23,9 @@ class SiteMapCssTest extends WebTestBase {
    */
   public static $modules = array('site_map', 'filter');
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp();
 

@@ -25,15 +25,15 @@ class SiteMapContentTest extends SiteMapTestBase {
     $this->assertTitle('Site map | Drupal', 'The title on the site map page is "Site map | Drupal".');
 
     // Change page title.
-    $newTitle = $this->randomMachineName();
+    $new_title = $this->randomMachineName();
     $edit = array(
-      'site_map_page_title' => $newTitle,
+      'site_map_page_title' => $new_title,
     );
     $this->drupalPostForm('admin/config/search/sitemap', $edit, t('Save configuration'));
 
     // Assert that page title is changed.
     $this->drupalGet('/sitemap');
-    $this->assertTitle("$newTitle | Drupal", 'The title on the site map page is "' . "$newTitle | Drupal" . '".');
+    $this->assertTitle("$new_title | Drupal", 'The title on the site map page is "' . "$new_title | Drupal" . '".');
   }
 
   /**
@@ -46,15 +46,15 @@ class SiteMapContentTest extends SiteMapTestBase {
     $this->assertEqual(count($elements), 0, 'Site map message is not included.');
 
     // Change site map message.
-    $newMessage = $this->randomMachineName(16);
+    $new_message = $this->randomMachineName(16);
     $edit = array(
-      'site_map_message[value]' => $newMessage,
+      'site_map_message[value]' => $new_message,
     );
     $this->drupalPostForm('admin/config/search/sitemap', $edit, t('Save configuration'));
 
     // Assert site map message is included in the site map.
     $this->drupalGet('/sitemap');
-    $elements = $this->cssSelect(".site-map-message:contains('" . $newMessage . "')");
+    $elements = $this->cssSelect(".site-map-message:contains('" . $new_message . "')");
     $this->assertEqual(count($elements), 1, 'Site map message is included.');
   }
 
@@ -112,7 +112,7 @@ class SiteMapContentTest extends SiteMapTestBase {
     // Configure module to show main menu, with enabled menu items only.
     $edit = array(
       'site_map_show_menus[main]' => 'main',
-      'site_map_show_menus_hidden' => FALSE
+      'site_map_show_menus_hidden' => FALSE,
     );
     $this->drupalPostForm('admin/config/search/sitemap', $edit, t('Save configuration'));
 
