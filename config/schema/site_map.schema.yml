@@ -70,3 +70,12 @@ site_map.settings:
     site_map_css:
       type: boolean
       label: 'Exclude css file flag'
+    site_map_order:
+      type: sequence
+      label: 'Site map order'
+      sequence:
+        - type: site_map.order.[%key]
+
+site_map.order.*:
+  type: integer
+  label: 'Weight'

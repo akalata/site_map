@@ -106,18 +106,30 @@ class SitemapSettingsForm extends ConfigFormBase {
       '#type' => 'details',
       '#title' => $this->t('Site map content'),
     );
+    $site_map_ordering = array();
     $form['site_map_content']['site_map_show_front'] = array(
       '#type' => 'checkbox',
       '#title' => $this->t('Show front page'),
       '#default_value' => $config->get('site_map_show_front'),
       '#description' => $this->t('When enabled, this option will include the front page in the site map.'),
     );
+    $site_map_ordering['front'] = t('Front page');
     $form['site_map_content']['site_map_show_titles'] = array(
       '#type' => 'checkbox',
       '#title' => $this->t('Show titles'),
       '#default_value' => $config->get('site_map_show_titles'),
       '#description' => $this->t('When enabled, this option will show titles. Disable to not show section titles.'),
     );
+
+    if ($this->moduleHandler->moduleExists('blog')) {
+      $form['site_map_content']['site_map_show_blogs'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Show active blog authors'),
+        '#default_value' => variable_get('site_map_show_blogs', 1),
+        '#description' => t('When enabled, this option will show the 10 most active blog authors.'),
+      );
+      $site_map_ordering['blogs'] = t('Active blog authors');
+    }
 
     if ($this->moduleHandler->moduleExists('book')) {
       $book_options = array();
@@ -137,12 +149,14 @@ class SitemapSettingsForm extends ConfigFormBase {
         '#default_value' => $config->get('site_map_books_expanded'),
         '#description' => $this->t('When enabled, this option will show all children pages for each book.'),
       );
+      $site_map_ordering['books'] = t('Books');
     }
 
     $menu_options = array();
     $menus = Menu::loadMultiple();
     foreach ($menus as $id => $menu) {
       $menu_options[$id] = $menu->label();
+      $site_map_ordering['menus_' . $id] = $menu->label();
     }
     $form['site_map_content']['site_map_show_menus'] = array(
       '#type' => 'checkboxes',
@@ -164,21 +178,47 @@ class SitemapSettingsForm extends ConfigFormBase {
         '#default_value' => $config->get('site_map_show_faq'),
         '#description' => $this->t('When enabled, this option will include the content from the FAQ module in the site map.'),
       );
+      $site_map_ordering['faq'] = t('FAQ content');
     }
 
-    $vocab_options = array();
     if ($this->moduleHandler->moduleExists('taxonomy')) {
+      $vocab_options = array();
       foreach (taxonomy_vocabulary_load_multiple() as $vocabulary) {
         $vocab_options[$vocabulary->id()] = $vocabulary->label();
+        $site_map_ordering['vocabularies_' . $vocabulary->id()] = $vocabulary->label();
       }
+      $form['site_map_content']['site_map_show_vocabularies'] = array(
+        '#type' => 'checkboxes',
+        '#title' => $this->t('Categories to include in the site map'),
+        '#default_value' => $config->get('site_map_show_vocabularies'),
+        '#options' => $vocab_options,
+        '#multiple' => TRUE,
+      );
     }
-    $form['site_map_content']['site_map_show_vocabularies'] = array(
-      '#type' => 'checkboxes',
-      '#title' => $this->t('Categories to include in the site map'),
-      '#default_value' => $config->get('site_map_show_vocabularies'),
-      '#options' => $vocab_options,
-      '#multiple' => TRUE,
+
+    $form['site_map_content']['site_map_order'] = array(
+      '#type' => 'item',
+      '#title' => t('Site map order'),
+      '#theme' => 'site_map_order',
     );
+    $site_map_order_defaults = \Drupal::config('site_map.settings')->get('site_map_order');
+    foreach ($site_map_ordering as $content_id => $content_title) {
+      $form['site_map_content']['site_map_order'][$content_id] = array(
+        'content' => array(
+          '#markup' => $content_title,
+        ),
+        'weight' => array(
+          '#type' => 'weight',
+          '#title' => t('Weight for @title', array('@title' => $content_title)),
+          '#title_display' => 'invisible',
+          '#delta' => 50,
+          '#default_value' => isset($site_map_order_defaults[$content_id])? $site_map_order_defaults[$content_id] : -50,
+          '#parents' => array('site_map_order', $content_id),
+        ),
+        '#weight' => isset($site_map_order_defaults[$content_id])? $site_map_order_defaults[$content_id] : -50,
+      );
+    }
+
     $form['site_map_taxonomy_options'] = array(
       '#type' => 'details',
       '#title' => $this->t('Categories settings'),
@@ -299,7 +339,8 @@ class SitemapSettingsForm extends ConfigFormBase {
       ->set('site_map_rss_front', $values['site_map_rss_front'])
       ->set('site_map_show_rss_links', $values['site_map_show_rss_links'])
       ->set('site_map_rss_depth', $values['site_map_rss_depth'])
-      ->set('site_map_css', $values['site_map_css']);
+      ->set('site_map_css', $values['site_map_css'])
+      ->set('site_map_order', $values['site_map_order']);
 
     if ($this->moduleHandler->moduleExists('book')) {
       $config->set('site_map_show_books', array_filter($values['site_map_show_books']))

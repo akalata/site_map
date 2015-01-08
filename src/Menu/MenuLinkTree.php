@@ -21,6 +21,17 @@ class MenuLinkTree extends CoreMenuLinkTree {
    * This is a clone of the core Drupal\Core\Menu\MenuLinkTree::build() function
    * with the exception of theme('site_map_menu_tree') for theming override
    * reasons.
+   *
+   * The menu item's LI element is given one of the following classes:
+   * - expanded: The menu item is showing its submenu.
+   * - collapsed: The menu item has a submenu which is not shown.
+   * - leaf: The menu item has no submenu.
+   *
+   * @param array $tree
+   *   A data structure representing the tree as returned from menu_tree_data.
+   *
+   * @return array
+   *   A structured array to be rendered by drupal_render().
    */
   public function buildForSiteMap(array $tree) {
     $config = \Drupal::config('site_map.settings');
@@ -34,7 +45,7 @@ class MenuLinkTree extends CoreMenuLinkTree {
     foreach ($tree as $data) {
       /** @var \Drupal\Core\Menu\MenuLinkInterface $link */
       $link = $data->link;
-      if ($link->isEnabled() || $config->get('site_map_show_menus_hidden')) {
+      if ($data->access && ($link->isEnabled() || $config->get('site_map_show_menus_hidden'))) {
         $items[] = $data;
       }
     }
@@ -61,9 +72,18 @@ class MenuLinkTree extends CoreMenuLinkTree {
       else {
         $class[] = 'leaf';
       }
+      $localized_options = array();
       // Set a class if the link is in the active trail.
       if ($data->inActiveTrail) {
         $class[] = 'active-trail';
+        $localized_options['attributes']['class'][] = 'active-trail';
+      }
+      // Normally, l() compares the href of every link with $_GET['q'] and sets
+      // the active class accordingly. But local tasks do not appear in menu
+      // trees, so if the current path is a local task, and this link is its
+      // tab root, then we have to set the class manually.
+      if (empty($data->options['attributes']['class']) || !in_array('active', $data->options['attributes']['class'])) {
+        $localized_options['attributes']['class'][] = 'active';
       }
 
       // Allow menu-specific theme overrides.
@@ -71,6 +91,7 @@ class MenuLinkTree extends CoreMenuLinkTree {
       $element['#attributes']['class'] = $class;
       $element['#title'] = $link->getTitle();
       $element['#url'] = $link->getUrlObject();
+      $element['#localized_options'] = $localized_options;
       $element['#below'] = $data->subtree ? $this->buildForSiteMap($data->subtree) : array();
       if (isset($data->options)) {
         $element['#url']->setOptions(NestedArray::mergeDeep($element['#url']->getOptions(), $data->options));

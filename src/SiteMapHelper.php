@@ -58,18 +58,23 @@ class SiteMapHelper {
   /**
    * Render the latest maps for the taxonomy tree.
    *
+   * @param object $voc
+   *   Vocabulary entity.
+   *
    * @return string
    *   Returns HTML string of site map for taxonomies.
    */
-  public function getTaxonomys() {
+  public function getTaxonomys($voc) {
     $output = '';
-    $config = $this->configFactory->get('site_map.settings');
-    $vids = array_filter($config->get('site_map_show_vocabularies'));
-    if (!empty($vids)) {
-      $vocabularies = entity_load_multiple('taxonomy_vocabulary', $vids);
-      foreach ($vocabularies as $vocabulary) {
-        $output .= $this->getTaxonomyTree($vocabulary->vid, $vocabulary->name, $vocabulary->description);
+    $options = array();
+
+    if (\Drupal::moduleHandler()->moduleExists('taxonomy') && !empty($voc)) {
+      if (\Drupal::moduleHandler()->moduleExists('i18n_taxonomy')) {
+        $voc->name = i18n_taxonomy_vocabulary_name($voc, $GLOBALS['language']->language);
       }
+
+      $output .= $this->getTaxonomyTree($voc->vid, $voc->name, $voc->description);
+      $this->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
     }
 
     return $output;
@@ -92,34 +97,46 @@ class SiteMapHelper {
     $output = '';
     $options = array();
     $class = array();
-
-    $title = $name ? String::checkPlain($name) : '';
-
     $config = \Drupal::config('site_map.settings');
-    $threshold = $config->get('site_map_term_threshold');
 
-    // Taxonomy terms depth.
-    $depth = $config->get('site_map_categories_depth');
-    if ($depth <= -1) {
-      $depth = NULL;
+    if ($vid == \Drupal::config('forum.settings')->get('forum_nav_vocabulary')) {
+      $title = \Drupal::l($name, Url::fromRoute('forum.index'));
+      $threshold = $config->get('site_map_forum_threshold');
+      $forum_link = TRUE;
     }
-
-    // RSS depth.
-    $rss_depth = $config->get('site_map_rss_depth');
-
-    $forum_link = FALSE;
+    else {
+      $title = $name ? String::checkPlain($name) : '';
+      $threshold = $config->get('site_map_term_threshold');
+      $forum_link = FALSE;
+    }
+    if (\Drupal::service('module_handler')->moduleExists('commentrss') && \Drupal::config('commentrss.settings')->get('commentrss_term')) {
+      $feed_icon = array(
+        '#theme' => 'site_map_feed_icon',
+        '#url' => "crss/vocab/$vid",
+        '#name' => String::checkPlain($name),
+        '#type' => 'comment',
+      );
+      $title .= ' ' . drupal_render($feed_icon);
+    }
 
     $last_depth = -1;
 
     $output .= !empty($description) && $config->get('site_map_show_description') ? '<div class="description">' . Xss::filterAdmin($description) . "</div>\n" : '';
 
     // taxonomy_get_tree() honors access controls.
-    // Included patch from https://www.drupal.org/node/1593556.
+    $depth = $config->get('site_map_categories_depth');
+    if ($depth <= -1) {
+      $depth = NULL;
+    }
     $tree = taxonomy_get_tree($vid, 0, $depth);
     foreach ($tree as $term) {
-      $term->count = count(taxonomy_select_nodes($term->tid));
+      $term->count = site_map_taxonomy_term_count_nodes($term->tid);
       if ($term->count <= $threshold) {
         continue;
+      }
+
+      if (\Drupal::service('module_handler')->moduleExists('i18n_taxonomy')) {
+        $term->name = i18n_taxonomy_term_name($term, $GLOBALS['language']->language);
       }
 
       // Adjust the depth of the <ul> based on the change
@@ -150,15 +167,27 @@ class SiteMapHelper {
         $term_item .= String::checkPlain($term->name);
       }
       if ($config->get('site_map_show_count')) {
-        $term_item .= " ($term->count)";
+        $term_item .= " <span title=\"" . format_plural($term->count, '1 item has this tag', '@count items have this tag') . "\">(" . $term->count . ")</span>";
       }
 
+      // RSS depth.
+      $rss_depth = $config->get('site_map_rss_depth');
       if ($config->get('site_map_show_rss_links') != 0 && ($rss_depth == -1 || $term->depth < $rss_depth)) {
         $feed_icon = array(
           '#theme' => 'site_map_feed_icon',
           '#url' => 'taxonomy/term/' . $term->tid . '/feed',
+          '#name' => $term->name,
         );
         $rss_link = drupal_render($feed_icon);
+        if (\Drupal::service('module_handler')->moduleExists('commentrss') && \Drupal::config('commentrss.settings')->get('commentrss_term')) {
+          $feed_icon = array(
+            '#theme' => 'site_map_feed_icon',
+            '#url' => "crss/term/$term->tid",
+            '#type' => 'comment',
+            '#name' => $term->name . ' comments',
+          );
+          $rss_link .= drupal_render($feed_icon);
+        }
         if ($config->get('site_map_show_rss_links') == 1) {
           $term_item .= ' ' . $rss_link;
         }
@@ -167,6 +196,9 @@ class SiteMapHelper {
           $term_item = $rss_link . ' ' . $term_item;
         }
       }
+
+      // Add an alter hook for modules to manipulate the taxonomy term output.
+      \Drupal::moduleHandler()->alter(array('site_map_taxonomy_term', 'site_map_taxonomy_term_' . $term->tid), $term_item, $term);
 
       $output .= $term_item;
 
@@ -180,7 +212,7 @@ class SiteMapHelper {
         $output .= "</li>\n</ul>\n";
       }
     }
-    \Drupal::service('site_map.helper')->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
+    $this->setOption($options, 'site_map_show_titles', 1, 'show_titles', TRUE);
 
     $class[] = 'site-map-box-terms';
     $class[] = 'site-map-box-terms-' . $vid;
