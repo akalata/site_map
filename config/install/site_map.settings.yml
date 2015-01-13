@@ -20,4 +20,5 @@ site_map_rss_front: rss.xml
 site_map_show_rss_links: 1
 site_map_rss_depth: -1
 site_map_css: false
-site_map_order: []
+site_map_order:
+  front: -50

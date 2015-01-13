@@ -203,7 +203,7 @@ class SitemapSettingsForm extends ConfigFormBase {
       '#title' => t('Site map order'),
       '#theme' => 'site_map_order',
     );
-    $site_map_order_defaults = \Drupal::config('site_map.settings')->get('site_map_order');
+    $site_map_order_defaults = $config->get('site_map_order');
     foreach ($site_map_ordering as $content_id => $content_title) {
       $form['site_map_content']['site_map_order'][$content_id] = array(
         'content' => array(
