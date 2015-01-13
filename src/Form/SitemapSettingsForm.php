@@ -212,10 +212,10 @@ class SitemapSettingsForm extends ConfigFormBase {
           '#title' => t('Weight for @title', array('@title' => $content_title)),
           '#title_display' => 'invisible',
           '#delta' => 50,
-          '#default_value' => isset($site_map_order_defaults[$content_id])? $site_map_order_defaults[$content_id] : -50,
+          '#default_value' => isset($site_map_order_defaults[$content_id]) ? $site_map_order_defaults[$content_id] : -50,
           '#parents' => array('site_map_order', $content_id),
         ),
-        '#weight' => isset($site_map_order_defaults[$content_id])? $site_map_order_defaults[$content_id] : -50,
+        '#weight' => isset($site_map_order_defaults[$content_id]) ? $site_map_order_defaults[$content_id] : -50,
       );
     }
 

@@ -2,8 +2,6 @@
 
 /**
  * @file
- * site_map.theme.inc
- *
  * Site map theme functions.
  */
 
@@ -47,7 +45,7 @@ function template_preprocess_site_map_box(&$variables) {
  *   - title: The subject of the box.
  *   - content: The content of the box.
  *   - attributes:  Optional attributes for the box.
- *   - options:  ?.
+ *   - options:  Options are set by site_map.helper service.
  *
  * @return string
  *   Returns sitemap display in DIV.
@@ -85,7 +83,7 @@ function theme_site_map_box(array $variables) {
  * @return string
  *   Constructs and returns html with feed image icon.
  */
-function theme_site_map_feed_icon($variables) {
+function theme_site_map_feed_icon(array $variables) {
   $output = '';
 
   switch ($variables['type']) {
@@ -152,7 +150,7 @@ function template_preprocess_site_map_menu_tree(&$variables) {
  * @see template_preprocess_menu_tree()
  * @ingroup themeable
  */
-function theme_site_map_menu_tree($variables) {
+function theme_site_map_menu_tree(array $variables) {
   return '<ul class="site-map-menu">' . $variables['tree'] . '</ul>';
 }
 
@@ -215,7 +213,7 @@ function template_preprocess_site_map(&$variables) {
   asort($site_map_order);
 
   foreach ($site_map_order as $content => $weight) {
-    // Get type of content
+    // Get type of content.
     $type = substr($content, 0, strpos($content, '_'));
     $id = substr($content, strpos($content, '_') + 1);
     if (empty($type)) {
@@ -228,29 +226,34 @@ function template_preprocess_site_map(&$variables) {
         if ($config->get('site_map_show_front')) {
           $variables['site_map'] .= _site_map_front_page();
         }
-      break;
+        break;
+
       case 'blogs':
         if ($config->get('site_map_show_blogs')) {
           $variables['site_map'] .= _site_map_blogs();
         }
-      break;
+        break;
+
       case 'books':
         $books = $config->get('site_map_show_books');
         if (!empty($books)) {
           $variables['site_map'] .= _site_map_books();
         }
-      break;
+        break;
+
       case 'menus':
         $menus = array_filter($config->get('site_map_show_menus'));
         if (!empty($menus[$id])) {
           $variables['site_map'] .= _site_map_menus($id);
         }
-      break;
+        break;
+
       case 'faq':
         if ($config->get('site_map_show_faq')) {
           $variables['site_map'] .= _site_map_faq();
         }
-      break;
+        break;
+
       case 'vocabularies':
         $vocabulary = entity_load('taxonomy_vocabulary', $id);
         $vocabularies = $config->get('site_map_show_vocabularies');
@@ -259,7 +262,7 @@ function template_preprocess_site_map(&$variables) {
           // Compile the vocabulary trees.
           $variables['site_map'] .= \Drupal::service('site_map.helper')->getTaxonomys($vocabulary);
         }
-      break;
+        break;
     }
   }
 
@@ -275,13 +278,13 @@ function template_preprocess_site_map(&$variables) {
  *
  * Copied from the core theme_filter_admin_format_filter_order() function.
  *
- * @param $variables
+ * @param array $variables
  *   An associative array containing:
  *   - element: A render element representing the form.
  *
  * @ingroup themeable
  */
-function theme_site_map_order($variables) {
+function theme_site_map_order(array $variables) {
   $element = $variables['element'];
 
   // Site map order (tabledrag).
