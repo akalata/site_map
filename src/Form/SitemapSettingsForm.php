@@ -322,37 +322,44 @@ class SitemapSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $values = $form_state->getValues();
     $config = $this->configFactory->get('site_map.settings');
 
-    $config->set('site_map_page_title', $values['site_map_page_title'])
-      ->set('site_map_message.value', $values['site_map_message']['value'])
-      ->set('site_map_message.format', $values['site_map_message']['format'])
-      ->set('site_map_show_front', $values['site_map_show_front'])
-      ->set('site_map_show_titles', $values['site_map_show_titles'])
-      ->set('site_map_show_menus', array_filter($values['site_map_show_menus']))
-      ->set('site_map_show_menus_hidden', $values['site_map_show_menus_hidden'])
-      ->set('site_map_show_vocabularies', array_filter($values['site_map_show_vocabularies']))
-      ->set('site_map_show_description', $values['site_map_show_description'])
-      ->set('site_map_show_count', $values['site_map_show_count'])
-      ->set('site_map_categories_depth', $values['site_map_categories_depth'])
-      ->set('site_map_term_threshold', $values['site_map_term_threshold'])
-      ->set('site_map_forum_threshold', $values['site_map_forum_threshold'])
-      ->set('site_map_rss_front', $values['site_map_rss_front'])
-      ->set('site_map_show_rss_links', $values['site_map_show_rss_links'])
-      ->set('site_map_rss_depth', $values['site_map_rss_depth'])
-      ->set('site_map_css', $values['site_map_css'])
-      ->set('site_map_order', $values['site_map_order']);
+    $keys = array(
+      'site_map_page_title',
+      array('site_map_message', 'value'),
+      array('site_map_message', 'format'),
+      'site_map_show_front',
+      'site_map_show_titles',
+      'site_map_show_menus',
+      'site_map_show_menus_hidden',
+      'site_map_show_vocabularies',
+      'site_map_show_description',
+      'site_map_show_count',
+      'site_map_categories_depth',
+      'site_map_term_threshold',
+      'site_map_forum_threshold',
+      'site_map_rss_front',
+      'site_map_show_rss_links',
+      'site_map_rss_depth',
+      'site_map_css',
+      'site_map_order',
+    );
 
     if ($this->moduleHandler->moduleExists('book')) {
-      $config->set('site_map_show_books', array_filter($values['site_map_show_books']))
-        ->set('site_map_books_expanded', $values['site_map_books_expanded']);
+      $keys[] = 'site_map_show_books';
+      $keys[] = 'site_map_books_expanded';
     }
 
     if ($this->moduleHandler->moduleExists('faq')) {
-      $config->set('site_map_show_faq', $values['site_map_show_faq']);
+      $keys[] = 'site_map_show_faq';
     }
 
+    // Save config.
+    foreach ($keys as $key) {
+      if ($form_state->hasValue($key)) {
+        $config->set(is_string($key) ? $key : implode('.', $key), $form_state->getValue($key));
+      }
+    }
     $config->save();
 
     parent::submitForm($form, $form_state);
