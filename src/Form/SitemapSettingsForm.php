@@ -125,7 +125,7 @@ class SitemapSettingsForm extends ConfigFormBase {
       $form['site_map_content']['site_map_show_blogs'] = array(
         '#type' => 'checkbox',
         '#title' => t('Show active blog authors'),
-        '#default_value' => variable_get('site_map_show_blogs', 1),
+        '#default_value' => $config->get('site_map_show_blogs'),
         '#description' => t('When enabled, this option will show the 10 most active blog authors.'),
       );
       $site_map_ordering['blogs'] = t('Active blog authors');
@@ -164,6 +164,8 @@ class SitemapSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('site_map_show_menus'),
       '#options' => $menu_options,
     );
+    // Thanks for fix by zhuber at
+    // https://drupal.org/node/1331104#comment-5200266.
     $form['site_map_content']['site_map_show_menus_hidden'] = array(
       '#type' => 'checkbox',
       '#title' => $this->t('Show disabled menu items'),

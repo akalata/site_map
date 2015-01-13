@@ -4,6 +4,7 @@ site_map_message:
   format: 'restricted_html'
 site_map_show_front: true
 site_map_show_titles: true
+site_map_show_blogs: true
 site_map_show_books: []
 site_map_books_expanded: true
 site_map_show_menus: []

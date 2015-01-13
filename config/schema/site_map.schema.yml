@@ -16,6 +16,9 @@ site_map.settings:
     site_map_show_titles:
       type: boolean
       label: 'Show titles flag'
+    site_map_show_blogs:
+      type: boolean
+      label: 'Show active blog authors flag'
     site_map_show_books:
       type: sequence
       label: 'Books to display'
