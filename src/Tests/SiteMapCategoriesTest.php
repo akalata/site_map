@@ -198,14 +198,7 @@ class SiteMapCategoriesTest extends SiteMapTestBase {
     // + tag 1 (1)
     // |-- tag 2 (0)
     // |---- tag 3 (1)
-    $title = $this->randomString();
-    $edit = array(
-      'title[0][value]' => $title,
-      'menu[enabled]' => TRUE,
-      'menu[title]' => $title,
-      $this->field_tags_name => $tags[0] . ',' . $tags[2],
-    );
-    $this->drupalPostForm('node/add/article', $edit, t('Save and publish'));
+    $this->createNode(array($tags[0], $tags[2]));
 
     // Change category count threshold to -1.
     $edit = array(
@@ -229,9 +222,8 @@ class SiteMapCategoriesTest extends SiteMapTestBase {
     // Assert that all tags are listed in the site map.
     $this->drupalGet('sitemap');
     $this->assertLink($tags[0]);
-    $this->assertNoLink($tags[1]);
-    $this->assertText($tags[1]);
-    $this->assertLink($tags[2]);
+    $this->assertNoText($tags[1]);
+    $this->assertNoText($tags[2]);
 
     // Change category count threshold to 1.
     $edit = array(
@@ -241,29 +233,21 @@ class SiteMapCategoriesTest extends SiteMapTestBase {
 
     // Assert that only tag 1 is listed in the site map.
     $this->drupalGet('sitemap');
-    $this->assertLink($tags[0]);
-    $this->assertNoLink($tags[1]);
-    $this->assertNoText($tags[1]);
-    $this->assertNoLink($tags[2]);
-    $this->assertNoText($tags[2]);
+    foreach ($tags as $tag) {
+      $this->assertNoText($tag);
+    }
 
     // Assign node to tag 2. Current structure is:
-    // + tag 1 (1)
+    // + tag 1 (2)
     // |-- tag 2 (1)
-    // |---- tag 3 (1)
-    $nodes = entity_load_multiple_by_properties('node', array('title' => $title));
-    $node = reset($nodes);
-    $nid = $node->id();
-    $edit = array(
-      $this->field_tags_name => implode(',', $tags),
-    );
-    $this->drupalPostForm("node/$nid/edit", $edit, t('Save and keep published'));
+    // |---- tag 3 (2)
+    $this->createNode($tags);
 
     // Assert that all tags are listed in the site map.
     $this->drupalGet('sitemap');
-    foreach ($tags as $tag) {
-      $this->assertLink($tag);
-    }
+    $this->assertLink($tags[0]);
+    $this->assertNoText($tags[1]);
+    $this->assertNoText($tags[2]);
 
     // Change category count threshold to 2.
     $edit = array(
@@ -274,8 +258,23 @@ class SiteMapCategoriesTest extends SiteMapTestBase {
     // Assert that no tags are listed in the site map.
     $this->drupalGet('sitemap');
     foreach ($tags as $tag) {
-      $this->assertNoLink($tag);
       $this->assertNoText($tag);
     }
+  }
+
+  /**
+   * Create node and assign tags to it.
+   *
+   * @param array $tags
+   *   Tags to assign to node.
+   */
+  protected function createNode($tags = array()) {
+    $title = $this->randomString();
+    $edit = array(
+      'title[0][value]' => $title,
+      'menu[title]' => $title,
+      $this->field_tags_name => implode(',', $tags),
+    );
+    $this->drupalPostForm('node/add/article', $edit, t('Save and publish'));
   }
 }
