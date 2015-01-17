@@ -18,7 +18,7 @@ use Drupal\Core\Url;
  *
  * @Block(
  *   id = "site_map_syndicate",
- *   label = @Translation("Syndicate")
+ *   label = @Translation("Syndicate"),
  *   admin_label = @Translation("Syndicate (site map)")
  * )
  */
