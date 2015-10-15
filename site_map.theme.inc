@@ -7,6 +7,7 @@
 
 use Drupal\Component\Utility\String;
 use Drupal\Core\Template\Attribute;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 
 /**
@@ -289,7 +290,7 @@ function theme_site_map_order(array $variables) {
 
   // Site map order (tabledrag).
   $rows = array();
-  foreach (element_children($element, TRUE) as $name) {
+  foreach (Element::children($element, TRUE) as $name) {
     $element[$name]['weight']['#attributes']['class'][] = 'site-map-order-weight';
     $rows[] = array(
       'data' => array(
